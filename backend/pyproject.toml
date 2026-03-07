@@ -1,0 +1,112 @@
+[project]
+name = "interwiews"
+version = "0.1.0"
+description = "interwiew app"
+authors = [{ name = "LOGIN", email = "EMAIL@space.local" }]
+readme = "README.md"
+requires-python = ">=3.13.0"
+dependencies = [
+    "fastapi>=0.134.0",
+    "sqlalchemy>=2.0.40",
+    "passlib[bcrypt]>=1.7.4",
+    "python-jose[cryptography]>=3.4.0",
+    "uvicorn>=0.34.2",
+    "alembic>=1.15.2",
+    "gunicorn>=23.0.0",
+    "asyncpg>=0.30.0",
+    "aiofiles>=25.1.0",
+    "psutil>=6.1.1",
+    "pillow>=11.2.1",
+    "openpyxl>=3.1.5",
+    "python-multipart>=0.0.20",
+    "pytz>=2025.2",
+    "httpx>=0.28.1",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.4.0",
+    "black>=25.11.0",
+    "mypy>=1.18.2",
+    "ruff>=0.6.9",
+    "types-requests>=2.31.0.20240218",
+    "types-aiofiles>=23.2.0.20240403",
+    "pytest>=9.0.1",
+    "types-pytz>=2025.2.0.20251108",
+    "pyinstrument>=4.6.2",
+    "jsonschema>=4.23.0",
+    "anyio>=4.4.0",
+    "pytest-asyncio>=1.3.0",
+    "pytest-tornasync>=0.6.0.post2",
+    "pytest-trio>=0.8.0",
+    "pytest-twisted>=1.14.3",
+    "twisted>=24.7.0",
+    "psycopg2-binary>=2.9.10",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.package-dir]
+"" = "."
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv.sources]
+src = { workspace = true }
+scripts = { workspace = true }
+
+[tool.black]
+line-length = 135
+
+[tool.ruff]
+line-length = 135
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+target-version = "py311"
+select = [
+    "E",  # pycodestyle
+    "F",  # pyflakes
+    "UP", # pyupgrade
+    "Q",  # quotes
+    "I",
+]
+fixable = ["Q", "I"]
+flake8-quotes.inline-quotes = "double"
+ignore = ["F401", "E712"]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "seed_data",
+    "migrations",
+    "seed",
+]
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = "ignore::DeprecationWarning"
+addopts = "-v -p no:cacheprovider --asyncio-mode=auto"
+asyncio_default_fixture_loop_scope = "session"

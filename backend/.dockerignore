@@ -1,0 +1,17 @@
+.venv
+venv
+.env
+.envrc
+scripts/
+.vscode
+.ruff_cache
+.mypy_cache
+dumps/
+.gitignore
+.gitlab-ci.yml
+.pre-commit-config.yml
+docker-compose.yml
+mypy.ini
+tests
+__pycache__/
+

@@ -1,0 +1,35 @@
+{
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports.ruff": "explicit"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    "ruff.interpreter": [
+        "${workspaceFolder}/.venv/bin/python3.13"
+    ],
+    "ruff.path": [
+        "${workspaceFolder}/.venv/bin/ruff"
+    ],
+    "python.testing.pytestArgs": [
+        "${workspaceFolder}/tests"
+    ],
+    "python.analysis.exclude": [
+        "*/__pycache__",
+        "*/*.pyc"
+    ],
+    "editor.defaultFormatter": null,
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportArgumentType": "warning",
+        "reportUnknownMemberType": "warning",
+        "reportUnknownArgumentType": "warning",
+        "reportOptionalMemberAccess": "warning",
+        "reportOptionalSubscript": "warning",
+        "reportAssignmentType": "warning"
+    }
+}

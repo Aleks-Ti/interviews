@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  api:
+    image: ./backend
+    container_name: interwiews_api
+    restart: always
+    logging:
+      driver: journald
+    env_file:
+      - .envrc
+    ports:
+      - "8458:${PORT}"
+    networks:
+      - api-network
+    depends_on:
+      - db
+    volumes:
+      - "/var/www/static:/opt/app/static"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
+
+    command: gunicorn --bind ${HOST}:${PORT} "${APP_MODULE}" -k uvicorn.workers.UvicornWorker -w 4
+
+  db:
+    image: postgres:17.0-alpine3.19
+    container_name: db
+    restart: always
+    env_file:
+      - .envrc
+    environment:
+      TZ: GMT-3
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DB}
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PORT: 5432
+      POSTGRES_POOL: 10
+    networks:
+      - podvig_api
+
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+networks:
+  api-network:
+    driver: bridge
+
+volumes:
+  pg_data:
