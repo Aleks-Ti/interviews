@@ -1,10 +1,10 @@
 import logging
 import os
 
-from interwiews.common.exceptions import BrockenPathExeption, InjectExeption
+from interwiews.core.exceptions import BrockenPathExeption, InjectExeption
 
 
-async def validate_path(file_path: str):
+async def validate_path(file_path: str) -> str:
     if "/" not in file_path:
         raise BrockenPathExeption
     full_path = os.path.join("static", file_path)

@@ -2,10 +2,10 @@ import logging
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from interwiews.common.logger import ch
+from interwiews.core.logger import ch
 from interwiews.infrastructure.database.connection import migrate
 from interwiews.routers import api
 
@@ -35,11 +35,6 @@ else:
         docs_url="/api/docs",
         lifespan=lifespan,
     )
-
-api = APIRouter(
-    prefix="/api",
-    responses={404: {"description": "Page not found"}},
-)
 
 app.add_middleware(
     CORSMiddleware,

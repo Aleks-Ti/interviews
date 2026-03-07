@@ -7,7 +7,7 @@ from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
-from interwiews.common.exceptions import ItemNotExist
+from interwiews.core.exceptions import ItemNotExist
 
 
 class HasId(Protocol):

@@ -3,8 +3,8 @@ from uuid import UUID
 
 from pydantic import Field, field_validator
 
-from interwiews.common.exceptions import UnprocessableEntity
-from interwiews.common.schemas import PreBasePydanticModel
+from interwiews.core.exceptions import UnprocessableEntity
+from interwiews.core.schemas import PreBasePydanticModel
 
 
 def password_validate(value: str) -> str:

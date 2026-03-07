@@ -10,8 +10,8 @@ from fastapi.security import APIKeyCookie
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from interwiews.common.configuration import conf
-from interwiews.common.exceptions import (
+from interwiews.core.configuration import conf
+from interwiews.core.exceptions import (
     InvalidTokenException,
     UserNotActiveException,
     UserNotAuthorizedException,
@@ -21,6 +21,8 @@ from interwiews.domain.user.models import RoleName, User
 from interwiews.domain.user.repository import UserRepository
 from interwiews.infrastructure.database.connection import get_async_session
 from interwiews.infrastructure.repository.persistence.user import PostgresUserRepository
+from interwiews.providers.base import AIProvider
+from interwiews.providers.factory import get_ai_provider
 
 auth_scheme = APIKeyCookie(name="authorization", auto_error=False)
 
@@ -58,6 +60,10 @@ async def get_current_user(
     except Exception:
         logging.exception("Error getting authorization data")
         raise HTTPException(status_code=400, detail="Error getting authorization data.")
+
+
+def get_provider() -> AIProvider:
+    return get_ai_provider()
 
 
 def role_required(required_roles: list[RoleName]) -> Callable:

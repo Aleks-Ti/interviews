@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import NoResultFound
 
 from interwiews.application.user import UserUseCases
-from interwiews.common.exceptions import AUTH_EXEPTIONS, NoContent, UserAlreadyExistsException
+from interwiews.core.exceptions import AUTH_EXEPTIONS, NoContent, UserAlreadyExistsException
 from interwiews.domain.user.models import RoleName
 from interwiews.routers.dependencies import get_current_user, role_required
 from interwiews.domain.user.exceptions import (

@@ -5,7 +5,7 @@ import bcrypt
 from jose import jwt
 from passlib.context import CryptContext
 
-from interwiews.common.configuration import conf
+from interwiews.core.configuration import conf
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

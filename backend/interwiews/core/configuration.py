@@ -81,11 +81,20 @@ class TokenConfig:
 
 
 @dataclass
+class AIProviderConfig:
+    provider: str = getenv("AI_PROVIDER", "openai")   # openai | anthropic | ollama
+    api_key: str | None = getenv("AI_API_KEY")
+    base_url: str | None = getenv("AI_BASE_URL")       # for ollama: http://localhost:11434
+    model: str | None = getenv("AI_MODEL")             # optional model override
+
+
+@dataclass
 class Configuration:
     debug = bool(getenv("DEBUG"))
     secure_cookie = not bool(getenv("SECURE_COOKIE"))
     db = PostgresDatabaseConfig()
     token = TokenConfig()
+    ai = AIProviderConfig()
 
 
 conf = Configuration()

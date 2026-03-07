@@ -3,8 +3,8 @@ from datetime import UTC, datetime, timedelta
 from fastapi import Response
 from fastapi.responses import JSONResponse
 
-from interwiews.common import jwt_auth
-from interwiews.common.exceptions import UserCredentialsException
+from interwiews.core import jwt_auth
+from interwiews.core.exceptions import UserCredentialsException
 from interwiews.domain.auth.models import User
 from interwiews.domain.auth.repository import AuthUserRepository
 from interwiews.domain.auth.schemas import LoginUserSchema
@@ -15,7 +15,7 @@ class AuthService:
         self.user_repository = user_repository
 
     async def authenticate_user(self, user_data: LoginUserSchema) -> JSONResponse:
-        user: User = await self.user_repository.find_by_email(user_data.email)
+        user: User | None = await self.user_repository.find_by_email(user_data.email)
         if not user:
             raise UserCredentialsException
         check_pass = jwt_auth.verify_password(user_data.password, user.password)

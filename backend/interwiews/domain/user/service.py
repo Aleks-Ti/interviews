@@ -1,8 +1,8 @@
 from collections.abc import Sequence
 from uuid import UUID
 
-from interwiews.common import jwt_auth
-from interwiews.common.jwt_auth import get_password_hash
+from interwiews.core import jwt_auth
+from interwiews.core.jwt_auth import get_password_hash
 from interwiews.domain.user.exceptions import (
     AdminNotChangeCommentingRightsAdminAndOwner,
     AdminNotRestoreOrDeletedAnotherAdmin,

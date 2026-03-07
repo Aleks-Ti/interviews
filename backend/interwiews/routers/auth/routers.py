@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import JSONResponse
 
 from interwiews.application.auth import AuthUseCases
-from interwiews.common.exceptions import AUTH_EXEPTIONS, UserCredentialsException, UserNotActiveException
+from interwiews.core.exceptions import AUTH_EXEPTIONS, UserCredentialsException, UserNotActiveException
 from interwiews.domain.auth.schemas import LoginUserSchema, LogoutSuccessSchema
 from interwiews.routers.auth.depends import auth_usecase as _auth_usecase
 from interwiews.routers.dependencies import get_current_user

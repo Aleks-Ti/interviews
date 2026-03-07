@@ -9,6 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 async def handle_file_upload(file: UploadFile | None, dir_name: str) -> str | None:
+    if file is None:
+        return None
     try:
         ext = Path(file.filename).suffix.lower()
         file_dir = Path("static") / dir_name

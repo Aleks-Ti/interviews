@@ -5,7 +5,7 @@ from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine as _create_async_engine
 
-from interwiews.common.configuration import conf
+from interwiews.core.configuration import conf
 
 
 def create_async_engine(url: URL | str) -> AsyncEngine:

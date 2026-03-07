@@ -1,6 +1,6 @@
 from pydantic import Field
 
-from interwiews.common.schemas import PreBasePydanticModel
+from interwiews.core.schemas import PreBasePydanticModel
 
 
 class LoginSuccessSchema(PreBasePydanticModel):
@@ -12,5 +12,5 @@ class LogoutSuccessSchema(PreBasePydanticModel):
 
 
 class LoginUserSchema(PreBasePydanticModel):
-    email: str = Field(examples=["supervisor@supervisor.supervisor"])
+    email: str = Field(examples=["user@user.user"])
     password: str = Field(examples=["qwer-qwer"])
