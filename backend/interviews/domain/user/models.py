@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 
-class RoleName(str, Enum):
+class RoleName(StrEnum):
     admin = "admin"
     user = "user"
 
@@ -23,4 +23,3 @@ class User:
     is_active: bool
     date_create: datetime
     date_update: datetime
-    is_allowed_comment: bool

@@ -5,6 +5,7 @@ from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine as _create_async_engine
 
+import interviews.infrastructure.database.models  # noqa: F401 — registers all ORM models
 from interviews.core.configuration import conf
 
 

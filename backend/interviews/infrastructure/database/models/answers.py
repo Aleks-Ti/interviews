@@ -24,6 +24,6 @@ class Answers(Base):
     question_id: Mapped[int] = mapped_column(sa.ForeignKey("questions.id"), nullable=False, unique=False)
     interview_id: Mapped[int] = mapped_column(sa.ForeignKey("interviews.id"), nullable=False, unique=False)
 
-    question = relationship("Questions", back_populates="answers")  # noqa: F821
-    interview = relationship("Interviews", back_populates="answers")
+    question = relationship("Questions", back_populates="answer", uselist=False)  # noqa: F821
+    interview = relationship("Interviews", back_populates="answers", uselist=False)
     analysis = relationship("Analysis", back_populates="answer", uselist=False)

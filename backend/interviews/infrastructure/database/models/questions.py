@@ -27,4 +27,5 @@ class Questions(Base):
 
     plan_id: Mapped[int] = mapped_column(sa.ForeignKey("plans.id"), nullable=False, unique=False)
 
-    plan = relationship("Plans", back_populates="questions")
+    plan = relationship("Plans", back_populates="questions", uselist=False)
+    answer = relationship("Answers", back_populates="question", uselist=False)

@@ -12,7 +12,7 @@ class UserRepository(AbstractRepository[User]):
     Id = UUID | int
 
     @abstractmethod
-    async def find_all_by_filter(self, query_params: UserFilters) -> Sequence[User]:
+    async def find_all_by_filter(self, query_params: UserFilters) -> list[User]:
         raise NotImplementedError
 
     @abstractmethod

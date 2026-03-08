@@ -70,14 +70,16 @@ async def plans() -> None:
     now = datetime.now()
 
     async with async_session_maker() as session:
+        user_id = await session.execute(text("SELECT id FROM public.users WHERE email = 'admin@admin.admin'"))
+        user_id = user_id.scalar()
         for plan in PLANS:
             await session.execute(
                 text("""
-                    INSERT INTO public.plans (id, name, description, date_create, date_update)
-                    VALUES (:id, :name, :description, :date_create, :date_update)
+                    INSERT INTO public.plans (id, name, description, date_create, date_update, created_by_user_id)
+                    VALUES (:id, :name, :description, :date_create, :date_update, :created_by_user_id)
                     ON CONFLICT (id) DO NOTHING
                 """),
-                {**plan, "date_create": now, "date_update": now},
+                {**plan, "date_create": now, "date_update": now, "created_by_user_id": user_id},
             )
 
         for question in QUESTIONS:

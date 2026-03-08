@@ -29,7 +29,7 @@ class AbstractRepository(ABC, Generic[T]):
         raise NotImplementedError
 
     @abstractmethod
-    async def find_all(self) -> Sequence[T]:
+    async def find_all(self) -> list[T]:
         raise NotImplementedError
 
     @abstractmethod
@@ -72,7 +72,7 @@ class BaseImplementationRepository(AbstractRepository[TDomainModel], Generic[TOr
         res = await self._session.execute(stmt)
         return self._to_domain(res.scalar_one())
 
-    async def find_all(self) -> Sequence[TDomainModel]:
+    async def find_all(self) -> list[TDomainModel]:
         stmt = select(self.model)
         res = await self._session.execute(stmt)
         return self._to_domain_many(res.scalars().all())
@@ -89,7 +89,7 @@ class BaseImplementationRepository(AbstractRepository[TDomainModel], Generic[TOr
         if res.rowcount == 0:
             raise ItemNotExist
 
-    async def update_all(self, data: dict) -> Sequence[TDomainModel]:
+    async def update_all(self, data: dict) -> list[TDomainModel]:
         stmt = update(self.model).values(**data).returning(self.model)
         res = await self._session.execute(stmt)
         return self._to_domain_many(res.scalars().all())

@@ -24,5 +24,8 @@ class Plans(Base):
         onupdate=sa.func.now(),
     )
 
+    created_by_user_id: Mapped[sa.UUID] = mapped_column(sa.UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False, unique=False)
+
+    created_by_user = relationship("Users", back_populates="plans", foreign_keys=[created_by_user_id])
     questions = relationship("Questions", back_populates="plan")
     interviews = relationship("Interviews", back_populates="plan")

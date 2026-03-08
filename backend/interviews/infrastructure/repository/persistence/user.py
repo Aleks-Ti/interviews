@@ -28,10 +28,9 @@ class PostgresUserRepository(BaseImplementationRepository[OrmUser, DomainUser], 
             is_active=orm_obj.is_active,
             date_create=orm_obj.date_create,
             date_update=orm_obj.date_update,
-            is_allowed_comment=orm_obj.is_allowed_comment,
         )
 
-    async def find_all_by_filter(self, query_params: UserFilters) -> Sequence[DomainUser]:
+    async def find_all_by_filter(self, query_params: UserFilters) -> list[DomainUser]:
         skip = (query_params.page - 1) * query_params.page_size
         stmt = select(self.model).options(selectinload(self.model.role))
 
