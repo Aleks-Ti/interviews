@@ -20,8 +20,8 @@ class Users(Base):
     )
 
     role = relationship("Roles", back_populates="users")
-    interviews = relationship("Interviews", back_populates="conducted_by_user")
-    plans = relationship("Plans", back_populates="created_by_user", foreign_keys="Plans.created_by_user_id", uselist=True)
+    interviews = relationship("Interviews", back_populates="conducted_by_user", cascade="all, delete-orphan", passive_deletes=True)
+    plans = relationship("Plans", back_populates="created_by_user", foreign_keys="Plans.created_by_user_id", uselist=True, cascade="all, delete-orphan", passive_deletes=True)
 
 
 class Roles(Base):

@@ -2,15 +2,18 @@ import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from interviews.application.plan import PlanUseCases
-from interviews.domain.plan.repository import Plan
 
+from interviews.application.plan import PlanUseCases
 from interviews.core.exceptions import AUTH_EXEPTIONS
-from interviews.domain.plan.models import User
+from interviews.domain.plan.exceptions import PlanNotFound
+from interviews.domain.plan.models import Plan
 from interviews.domain.plan.schemas import (
+    CreatePlanSchema,
     GetPlanSchema,
     PlanFilters,
+    UpdatePlanSchema,
 )
+from interviews.domain.user.models import User
 from interviews.routers.dependencies import get_current_user
 from interviews.routers.plan.depends import plan_usecase as _plan_usecase
 
@@ -28,10 +31,76 @@ async def get_plans(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[Plan]:
     try:
-        plans = await plan_usecase.get_plans(current_user, query_params)
-        return plans
+        return await plan_usecase.get_plans(current_user.id, query_params)
     except AUTH_EXEPTIONS:
         raise
     except Exception as err:
         logging.exception(f"Error getting list of plans. Error: {err}")
         raise HTTPException(status_code=400, detail="Error getting list of plans")
+
+
+@plan_router.get("/{plan_id}", response_model=GetPlanSchema)
+async def get_plan(
+    plan_id: int,
+    plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> Plan:
+    try:
+        return await plan_usecase.get_plan(plan_id, current_user.id)
+    except PlanNotFound:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    except AUTH_EXEPTIONS:
+        raise
+    except Exception as err:
+        logging.exception(f"Error getting plan {plan_id}. Error: {err}")
+        raise HTTPException(status_code=400, detail="Error getting plan")
+
+
+@plan_router.post("", response_model=GetPlanSchema, status_code=201)
+async def create_plan(
+    data: CreatePlanSchema,
+    plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> Plan:
+    try:
+        return await plan_usecase.create_plan(data, current_user.id)
+    except AUTH_EXEPTIONS:
+        raise
+    except Exception as err:
+        logging.exception(f"Error creating plan. Error: {err}")
+        raise HTTPException(status_code=400, detail="Error creating plan")
+
+
+@plan_router.patch("/{plan_id}", response_model=GetPlanSchema)
+async def update_plan(
+    plan_id: int,
+    data: UpdatePlanSchema,
+    plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> Plan:
+    try:
+        return await plan_usecase.update_plan(plan_id, data, current_user.id)
+    except PlanNotFound:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    except AUTH_EXEPTIONS:
+        raise
+    except Exception as err:
+        logging.exception(f"Error updating plan {plan_id}. Error: {err}")
+        raise HTTPException(status_code=400, detail="Error updating plan")
+
+
+@plan_router.delete("/{plan_id}", status_code=204)
+async def delete_plan(
+    plan_id: int,
+    plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> None:
+    try:
+        await plan_usecase.delete_plan(plan_id, current_user.id)
+    except PlanNotFound:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    except AUTH_EXEPTIONS:
+        raise
+    except Exception as err:
+        logging.exception(f"Error deleting plan {plan_id}. Error: {err}")
+        raise HTTPException(status_code=400, detail="Error deleting plan")

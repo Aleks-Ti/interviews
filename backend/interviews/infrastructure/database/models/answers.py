@@ -21,9 +21,9 @@ class Answers(Base):
         sa.DateTime(timezone=True), unique=False, nullable=False, default=sa.func.now(), onupdate=sa.func.now()
     )
 
-    question_id: Mapped[int] = mapped_column(sa.ForeignKey("questions.id"), nullable=False, unique=False)
-    interview_id: Mapped[int] = mapped_column(sa.ForeignKey("interviews.id"), nullable=False, unique=False)
+    question_id: Mapped[int] = mapped_column(sa.ForeignKey("questions.id", ondelete="CASCADE"), nullable=False, unique=False)
+    interview_id: Mapped[int] = mapped_column(sa.ForeignKey("interviews.id", ondelete="CASCADE"), nullable=False, unique=False)
 
-    question = relationship("Questions", back_populates="answer", uselist=False)  # noqa: F821
+    question = relationship("Questions", back_populates="answer", uselist=False)
     interview = relationship("Interviews", back_populates="answers", uselist=False)
-    analysis = relationship("Analysis", back_populates="answer", uselist=False)
+    analysis = relationship("Analysis", back_populates="answer", uselist=False, cascade="all, delete-orphan", passive_deletes=True)

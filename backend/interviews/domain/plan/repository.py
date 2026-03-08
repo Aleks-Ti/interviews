@@ -2,32 +2,29 @@ from abc import abstractmethod
 from uuid import UUID
 
 from interviews.domain.plan.models import Plan, Question
-from interviews.domain.plan.schemas import PlanFilters
-from interviews.infrastructure.database.models.users import Roles
+from interviews.domain.plan.schemas import CreatePlanSchema, PlanFilters
 from interviews.infrastructure.repository.base_repository import AbstractRepository
 
 
 class PlanRepository(AbstractRepository[Plan]):
-    Id = UUID | int
-
     @abstractmethod
     async def find_all_by_user_id(self, user_id: UUID, filters: PlanFilters) -> list[Plan]:
         raise NotImplementedError
 
     @abstractmethod
-    async def find_one_or_none(self, item_id: Id) -> Plan | None:
+    async def find_one_or_none(self, item_id: int) -> Plan | None:
         raise NotImplementedError
 
     @abstractmethod
-    async def update_all(self, data: dict) -> list[Plan]:
+    async def find_one(self, item_id: int) -> Plan:
         raise NotImplementedError
 
     @abstractmethod
-    async def find_one(self, item_id: UUID | int) -> Plan:
+    async def update_one(self, item_id: int, data: dict) -> Plan:
         raise NotImplementedError
 
     @abstractmethod
-    async def update_one(self, item_id: UUID | int, data: dict) -> Plan:
+    async def add_one_with_questions(self, data: CreatePlanSchema, user_id: UUID) -> Plan:
         raise NotImplementedError
 
 

@@ -25,7 +25,7 @@ class Questions(Base):
         onupdate=sa.func.now(),
     )
 
-    plan_id: Mapped[int] = mapped_column(sa.ForeignKey("plans.id"), nullable=False, unique=False)
+    plan_id: Mapped[int] = mapped_column(sa.ForeignKey("plans.id", ondelete="CASCADE"), nullable=False, unique=False)
 
     plan = relationship("Plans", back_populates="questions", uselist=False)
-    answer = relationship("Answers", back_populates="question", uselist=False)
+    answer = relationship("Answers", back_populates="question", uselist=False, cascade="all, delete-orphan", passive_deletes=True)

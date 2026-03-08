@@ -14,6 +14,6 @@ class Analysis(Base):
     weaknesses: Mapped[list] = mapped_column(sa.JSON, unique=False, nullable=True)
     recomendation: Mapped[str] = mapped_column(sa.Text, unique=False, nullable=True)
 
-    answer_id: Mapped[int] = mapped_column(sa.ForeignKey("answers.id"), nullable=False, unique=False)
+    answer_id: Mapped[int] = mapped_column(sa.ForeignKey("answers.id", ondelete="CASCADE"), nullable=False, unique=False)
 
     answer = relationship("Answers", back_populates="analysis")

@@ -4,36 +4,29 @@ from enum import StrEnum
 from uuid import UUID
 
 
-@dataclass
-class Plan:
-    id: int
-    name: str
-    description: str
-    questions: list["Question"]
+class QuestionType(StrEnum):
+    technical = "technical"
+    behavioral = "behavioral"
+    custom = "custom"
 
 
 @dataclass
 class Question:
     id: int
     text: str
-
-
-class RoleName(StrEnum):
-    admin = "admin"
-    user = "user"
-
-
-@dataclass
-class Role:
-    id: int
-    name: str
-
-
-@dataclass
-class User:
-    id: UUID
-    email: str
-    role: Role
-    is_active: bool
+    type: str
+    criteria: list[str]
+    plan_id: int
     date_create: datetime
     date_update: datetime
+
+
+@dataclass
+class Plan:
+    id: int
+    name: str
+    description: str
+    created_by_user_id: UUID
+    date_create: datetime
+    date_update: datetime
+    questions: list[Question]

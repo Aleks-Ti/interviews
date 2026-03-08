@@ -12,5 +12,5 @@ class LogoutSuccessSchema(PreBasePydanticModel):
 
 
 class LoginUserSchema(PreBasePydanticModel):
-    email: str = Field(examples=["user@user.user"])
+    email: str = Field(examples=["admin@admin.admin"])
     password: str = Field(examples=["qwer-qwer"])

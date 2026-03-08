@@ -145,6 +145,9 @@ async def interviews() -> None:
                 analysis,
             )
 
+        await session.execute(text("SELECT setval(pg_get_serial_sequence('interviews', 'id'), MAX(id)) FROM interviews"))
+        await session.execute(text("SELECT setval(pg_get_serial_sequence('answers', 'id'), MAX(id)) FROM answers"))
+        await session.execute(text("SELECT setval(pg_get_serial_sequence('analysis', 'id'), MAX(id)) FROM analysis"))
         await session.commit()
 
     print("interviews loaded!\n")

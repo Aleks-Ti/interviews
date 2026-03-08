@@ -27,9 +27,9 @@ class Interviews(Base):
         onupdate=sa.func.now(),
     )
 
-    conducted_by: Mapped[UUID] = mapped_column(sa.UUID, sa.ForeignKey("users.id"), unique=False, nullable=False)
-    plan_id: Mapped[int] = mapped_column(sa.ForeignKey("plans.id"), nullable=False, unique=False)
+    conducted_by: Mapped[UUID] = mapped_column(sa.UUID, sa.ForeignKey("users.id", ondelete="CASCADE"), unique=False, nullable=False)
+    plan_id: Mapped[int] = mapped_column(sa.ForeignKey("plans.id", ondelete="CASCADE"), nullable=False, unique=False)
 
     plan = relationship("Plans", back_populates="interviews")
     conducted_by_user = relationship("Users", back_populates="interviews")
-    answers = relationship("Answers", back_populates="interview")
+    answers = relationship("Answers", back_populates="interview", cascade="all, delete-orphan", passive_deletes=True)

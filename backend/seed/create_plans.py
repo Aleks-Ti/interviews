@@ -92,6 +92,8 @@ async def plans() -> None:
                 {**question, "criteria": json.dumps(question["criteria"]), "date_create": now, "date_update": now},
             )
 
+        await session.execute(text("SELECT setval(pg_get_serial_sequence('plans', 'id'), MAX(id)) FROM plans"))
+        await session.execute(text("SELECT setval(pg_get_serial_sequence('questions', 'id'), MAX(id)) FROM questions"))
         await session.commit()
 
     print("plans loaded!\n")

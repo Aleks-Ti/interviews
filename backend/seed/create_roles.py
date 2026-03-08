@@ -43,5 +43,6 @@ async def role() -> None:
                 "name": role_data["name"]
             }
             await session.execute(query, values)
+        await session.execute(text("SELECT setval(pg_get_serial_sequence('roles', 'id'), MAX(id)) FROM roles"))
         await session.commit()
         print("roles loaded!\n")
