@@ -8,7 +8,7 @@ from sqlalchemy import text
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from interwiews.infrastructure.database.connection import async_session_maker
+from interviews.infrastructure.database.connection import async_session_maker
 
 
 PLANS = [

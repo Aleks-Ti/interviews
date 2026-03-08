@@ -8,8 +8,8 @@ from sqlalchemy import text
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from interwiews.core.jwt_auth import get_password_hash
-from interwiews.infrastructure.database.connection import async_session_maker
+from interviews.core.jwt_auth import get_password_hash
+from interviews.infrastructure.database.connection import async_session_maker
 
 
 async def user() -> None:

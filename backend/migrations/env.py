@@ -6,14 +6,14 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from interwiews.core.configuration import conf
-from interwiews.infrastructure.database.base_model import metadata
-from interwiews.infrastructure.database.models.users import Users, Roles
-from interwiews.infrastructure.database.models.analysis import Analysis
-from interwiews.infrastructure.database.models.answers import Answers
-from interwiews.infrastructure.database.models.interviews import Interviews
-from interwiews.infrastructure.database.models.plans import Plans
-from interwiews.infrastructure.database.models.questions import Questions
+from interviews.core.configuration import conf
+from interviews.infrastructure.database.base_model import metadata
+from interviews.infrastructure.database.models.users import Users, Roles
+from interviews.infrastructure.database.models.analysis import Analysis
+from interviews.infrastructure.database.models.answers import Answers
+from interviews.infrastructure.database.models.interviews import Interviews
+from interviews.infrastructure.database.models.plans import Plans
+from interviews.infrastructure.database.models.questions import Questions
 
 config = context.config
 

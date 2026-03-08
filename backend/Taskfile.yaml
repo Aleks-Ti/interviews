@@ -29,8 +29,8 @@ tasks:
     desc: Перезагрузить БД (осторожно, удалятся все данные)
     cmds:
       - >
-        docker stop interwiews_db || true &&
-        docker run --name=interwiews_db
+        docker stop interviews_db || true &&
+        docker run --name=interviews_db
         -e SSL_MODE=disable
         -e POSTGRES_USER=$PG_USER
         -e POSTGRES_PASSWORD=$PG_PASSWORD
@@ -53,7 +53,7 @@ tasks:
     desc: БД без сохранения volumes, для разработки и тестов
     cmds:
       - >
-        docker run --name=interwiews_db
+        docker run --name=interviews_db
         -e SSL_MODE=disable
         -e POSTGRES_USER=$PG_USER
         -e POSTGRES_PASSWORD=$PG_PASSWORD
@@ -67,13 +67,13 @@ tasks:
     desc: БД с volume (данные сохраняются при удалении контейнера)
     cmds:
       - >
-        docker run --name=interwiews_db
+        docker run --name=interviews_db
         -e SSL_MODE=disable
         -e POSTGRES_USER=$PG_USER
         -e POSTGRES_PASSWORD=$PG_PASSWORD
         -e POSTGRES_DB=$PG_DB
         -e TZ=GMT-3
-        -v interwiews_db_data:/var/lib/postgresql/data
+        -v interviews_db_data:/var/lib/postgresql/data
         -p $PG_PORT:5432
         -d --rm
         postgres:17.0-alpine3.19
@@ -81,7 +81,7 @@ tasks:
   postgres:stop:
     desc: Остановить БД
     cmds:
-      - docker stop interwiews_db
+      - docker stop interviews_db
 
   redis:up:
     desc: Запустить Redis

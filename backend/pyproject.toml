@@ -1,7 +1,7 @@
 [project]
-name = "interwiews"
+name = "interviews"
 version = "0.1.0"
-description = "interwiew app"
+description = "interview app"
 authors = [{ name = "LOGIN", email = "EMAIL@space.local" }]
 readme = "README.md"
 requires-python = ">=3.13.0"

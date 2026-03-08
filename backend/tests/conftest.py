@@ -8,17 +8,16 @@ os.environ.setdefault("PG_PORT", "5523")
 os.environ.setdefault("PG_DB", "postgres_db")
 os.environ.setdefault("TOKEN_SECRET_KEY", "test_secret")
 
+import interviews.infrastructure.database.models.comment  # noqa: F401
+import interviews.infrastructure.database.models.post  # noqa: F401
 import psycopg2
 import pytest
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from interwiews.infrastructure.database.base_model import metadata
-
 # Import all models so metadata is populated
-import interwiews.infrastructure.database.models.users  # noqa: F401
-import interwiews.infrastructure.database.models.post  # noqa: F401
-import interwiews.infrastructure.database.models.comment  # noqa: F401
+import interviews.infrastructure.database.models.users  # noqa: F401
+from interviews.infrastructure.database.base_model import metadata
 
 PG_USER = os.environ["PG_USER"]
 PG_PASSWORD = os.environ["PG_PASSWORD"]
@@ -64,23 +63,27 @@ async def test_engine(create_test_database):
 @pytest.fixture(scope="session")
 async def seed_roles(test_engine):
     from sqlalchemy import insert
-    from interwiews.infrastructure.database.models.users import Role
+
+    from interviews.infrastructure.database.models.users import Role
 
     async with async_sessionmaker(test_engine, expire_on_commit=False)() as session:
         async with session.begin():
             await session.execute(
-                insert(Role).values([
-                    {"id": 1, "name": "admin"},
-                    {"id": 2, "name": "owner"},
-                    {"id": 3, "name": "user"},
-                ])
+                insert(Role).values(
+                    [
+                        {"id": 1, "name": "admin"},
+                        {"id": 2, "name": "owner"},
+                        {"id": 3, "name": "user"},
+                    ]
+                )
             )
 
 
 @pytest.fixture(scope="session")
 async def test_user_id(seed_roles, test_engine):
     from sqlalchemy import insert
-    from interwiews.infrastructure.database.models.users import User
+
+    from interviews.infrastructure.database.models.users import User
 
     user_id = uuid.uuid4()
     async with async_sessionmaker(test_engine, expire_on_commit=False)() as session:
