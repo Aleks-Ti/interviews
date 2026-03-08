@@ -4,7 +4,7 @@ from uuid import UUID
 
 from interwiews.domain.user.models import User
 from interwiews.domain.user.schemas import UserFilters
-from interwiews.infrastructure.database.models.user import Role
+from interwiews.infrastructure.database.models.users import Roles
 from interwiews.infrastructure.repository.base_repository import AbstractRepository
 
 
@@ -36,4 +36,4 @@ class UserRepository(AbstractRepository[User]):
         raise NotImplementedError
 
 
-class RoleRepository(AbstractRepository[Role]): ...
+class RoleRepository(AbstractRepository[Roles]): ...

@@ -25,7 +25,31 @@ tasks:
     cmds:
       - uv sync
 
-  postgres:db:
+  postgres:reload:
+    desc: Перезагрузить БД (осторожно, удалятся все данные)
+    cmds:
+      - >
+        docker stop interwiews_db || true &&
+        docker run --name=interwiews_db
+        -e SSL_MODE=disable
+        -e POSTGRES_USER=$PG_USER
+        -e POSTGRES_PASSWORD=$PG_PASSWORD
+        -e POSTGRES_DB=$PG_DB
+        -e TZ=GMT-3
+        -p $PG_PORT:5432
+        -d --rm
+        postgres:17.0-alpine3.19
+
+  alembic:null_migrations:
+    desc: Нулевая миграция БД с загрузкой новых сидов (осторожно, удалятся все данные)
+    cmds:
+      - >
+        rm -rf migrations/versions &&
+        uv run alembic revision --autogenerate -m "initial" &&
+        uv run alembic upgrade head &&
+        python seed/main.py
+
+  postgres:up:
     desc: БД без сохранения volumes, для разработки и тестов
     cmds:
       - >
@@ -39,7 +63,7 @@ tasks:
         -d --rm
         postgres:17.0-alpine3.19
 
-  postgres:db:volume:
+  postgres:up:volume:
     desc: БД с volume (данные сохраняются при удалении контейнера)
     cmds:
       - >

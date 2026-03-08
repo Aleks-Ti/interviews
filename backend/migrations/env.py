@@ -8,7 +8,12 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from interwiews.core.configuration import conf
 from interwiews.infrastructure.database.base_model import metadata
-from interwiews.infrastructure.database.models.user import User, Role
+from interwiews.infrastructure.database.models.users import Users, Roles
+from interwiews.infrastructure.database.models.analysis import Analysis
+from interwiews.infrastructure.database.models.answers import Answers
+from interwiews.infrastructure.database.models.interviews import Interviews
+from interwiews.infrastructure.database.models.plans import Plans
+from interwiews.infrastructure.database.models.questions import Questions
 
 config = context.config
 

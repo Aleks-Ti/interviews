@@ -12,8 +12,8 @@ from interwiews.domain.user.models import Role as DomainRole
 from interwiews.domain.user.models import User as DomainUser
 from interwiews.domain.user.repository import UserRepository
 from interwiews.domain.user.schemas import UserFilters
-from interwiews.infrastructure.database.models.user import Role as OrmRole
-from interwiews.infrastructure.database.models.user import User as OrmUser
+from interwiews.infrastructure.database.models.users import Roles as OrmRole
+from interwiews.infrastructure.database.models.users import Users as OrmUser
 from interwiews.infrastructure.repository.base_repository import BaseImplementationRepository
 
 

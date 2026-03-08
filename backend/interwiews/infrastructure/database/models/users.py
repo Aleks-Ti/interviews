@@ -6,7 +6,7 @@ from sqlalchemy.orm import mapped_column, relationship
 from interwiews.infrastructure.database.base_model import Base
 
 
-class User(Base):
+class Users(Base):
     __tablename__ = "users"
 
     id = mapped_column(sa.UUID, primary_key=True, unique=True, nullable=False, default=uuid.uuid4)
@@ -19,12 +19,14 @@ class User(Base):
         sa.DateTime(timezone=True), unique=False, nullable=False, default=sa.func.now(), onupdate=sa.func.now()
     )
 
-    role = relationship("Role", back_populates="users")
+    role = relationship("Roles", back_populates="users")
+    interviews = relationship("Interviews", back_populates="conducted_by_user")
 
-class Role(Base):
+
+class Roles(Base):
     __tablename__ = "roles"
 
     id = mapped_column(sa.Integer, primary_key=True, unique=True, nullable=False)
     name = mapped_column(sa.String(64), unique=True, nullable=False)
 
-    users = relationship("User", back_populates="roles")
+    users = relationship("Users", back_populates="role")

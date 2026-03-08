@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from interwiews.infrastructure.database.base_model import metadata
 
 # Import all models so metadata is populated
-import interwiews.infrastructure.database.models.user  # noqa: F401
+import interwiews.infrastructure.database.models.users  # noqa: F401
 import interwiews.infrastructure.database.models.post  # noqa: F401
 import interwiews.infrastructure.database.models.comment  # noqa: F401
 
@@ -64,7 +64,7 @@ async def test_engine(create_test_database):
 @pytest.fixture(scope="session")
 async def seed_roles(test_engine):
     from sqlalchemy import insert
-    from interwiews.infrastructure.database.models.user import Role
+    from interwiews.infrastructure.database.models.users import Role
 
     async with async_sessionmaker(test_engine, expire_on_commit=False)() as session:
         async with session.begin():
@@ -80,7 +80,7 @@ async def seed_roles(test_engine):
 @pytest.fixture(scope="session")
 async def test_user_id(seed_roles, test_engine):
     from sqlalchemy import insert
-    from interwiews.infrastructure.database.models.user import User
+    from interwiews.infrastructure.database.models.users import User
 
     user_id = uuid.uuid4()
     async with async_sessionmaker(test_engine, expire_on_commit=False)() as session:
