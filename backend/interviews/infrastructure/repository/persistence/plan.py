@@ -20,6 +20,7 @@ class PostgresPlanRepository(BaseImplementationRepository[OrmPlans, DomainPlan],
             id=orm_obj.id,
             name=orm_obj.name,
             description=orm_obj.description,
+            status=orm_obj.status,
             created_by_user_id=orm_obj.created_by_user_id,
             date_create=orm_obj.date_create,
             date_update=orm_obj.date_update,
@@ -61,7 +62,7 @@ class PostgresPlanRepository(BaseImplementationRepository[OrmPlans, DomainPlan],
     async def add_one_with_questions(self, data: CreatePlanSchema, user_id: UUID) -> DomainPlan:
         plan_stmt = (
             insert(self.model)
-            .values(name=data.name, description=data.description, created_by_user_id=user_id)
+            .values(name=data.name, description=data.description, created_by_user_id=user_id, status="draft")
             .returning(self.model.id)
         )
         res = await self._session.execute(plan_stmt)

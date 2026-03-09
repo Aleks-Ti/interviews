@@ -10,6 +10,7 @@ class Plans(Base):
     id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, nullable=False, unique=True)
     name: Mapped[str] = mapped_column(sa.String(256), unique=False, nullable=False)
     description: Mapped[str] = mapped_column(sa.Text, unique=False, nullable=True)
+    status: Mapped[str] = mapped_column(sa.String(64), nullable=False, default="draft")
     date_create = mapped_column(
         sa.DateTime(timezone=True),
         unique=False,

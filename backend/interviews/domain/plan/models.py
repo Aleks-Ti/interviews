@@ -10,6 +10,11 @@ class QuestionType(StrEnum):
     custom = "custom"
 
 
+class PlanStatus(StrEnum):
+    draft = "draft"
+    published = "published"
+
+
 @dataclass
 class Question:
     id: int
@@ -26,6 +31,7 @@ class Plan:
     id: int
     name: str
     description: str
+    status: str
     created_by_user_id: UUID
     date_create: datetime
     date_update: datetime

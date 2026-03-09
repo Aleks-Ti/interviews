@@ -16,11 +16,13 @@ PLANS = [
         "id": 1,
         "name": "Python Backend Developer",
         "description": "Техническое интервью для бэкенд-разработчиков на Python. Охватывает asyncio, ORM, архитектуру и опыт решения реальных задач.",
+        "status": "draft",
     },
     {
         "id": 2,
         "name": "HR Screening (General)",
         "description": "Базовый скрининг для любой роли. Мотивация, ожидания, культурный фит.",
+        "status": "draft",
     },
 ]
 
@@ -75,8 +77,8 @@ async def plans() -> None:
         for plan in PLANS:
             await session.execute(
                 text("""
-                    INSERT INTO public.plans (id, name, description, date_create, date_update, created_by_user_id)
-                    VALUES (:id, :name, :description, :date_create, :date_update, :created_by_user_id)
+                    INSERT INTO public.plans (id, name, description, date_create, date_update, created_by_user_id, status)
+                    VALUES (:id, :name, :description, :date_create, :date_update, :created_by_user_id, :status)
                     ON CONFLICT (id) DO NOTHING
                 """),
                 {**plan, "date_create": now, "date_update": now, "created_by_user_id": user_id},

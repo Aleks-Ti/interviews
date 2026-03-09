@@ -24,6 +24,12 @@ class CreatePlanSchema(PreBasePydanticModel):
     questions: list[CreateQuestionSchema] = Field(default_factory=list)
 
 
+class UpdateQuestionSchema(PreBasePydanticModel):
+    text: str | None = None
+    type: str | None = None
+    criteria: list[str] | None = None
+
+
 class GetQuestionSchema(PreBasePydanticModel):
     id: int
     text: str
@@ -35,4 +41,5 @@ class GetPlanSchema(PreBasePydanticModel):
     id: int
     name: str
     description: str | None
+    status: str
     questions: list[GetQuestionSchema]
