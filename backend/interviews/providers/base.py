@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -12,8 +12,17 @@ class QuestionAnalysis:
 
 
 @dataclass
-class GeneratedQuestions:
-    questions: list[str]
+class GeneratedQuestion:
+    text: str
+    type: str           # "technical" | "behavioral" | "custom"
+    criteria: list[str]
+
+
+@dataclass
+class GeneratedPlan:
+    name: str
+    description: str
+    questions: list[GeneratedQuestion]
 
 
 class AIProvider(ABC):
@@ -35,6 +44,16 @@ class AIProvider(ABC):
         ...
 
     @abstractmethod
-    async def generate_questions(self, job_description: str, count: int = 5) -> list[str]:
-        """Generate interview questions from a job description."""
+    async def suggest_question(self, context: str, question_type: str = "technical") -> GeneratedQuestion:
+        """Generate a single well-crafted interview question for the given context."""
+        ...
+
+    @abstractmethod
+    async def get_expected_answer(self, question: str, criteria: list[str], context: str) -> str:
+        """Generate an expected answer to help interviewers evaluate responses."""
+        ...
+
+    @abstractmethod
+    async def generate_plan(self, prompt: str, question_count: int = 10) -> GeneratedPlan:
+        """Generate a complete interview plan with questions from a free-text prompt."""
         ...

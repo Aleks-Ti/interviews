@@ -53,10 +53,3 @@ class UserUseCases:
             await service.edit_password(data, current_user)
             await uow.commit()
         return {"message": "password change was completed successfully"}
-
-    async def change_user_is_allowed_comment(self, user_id: UUID, current_user: User, is_allowed_comment: bool):
-        async with self.uow as uow:
-            service = UserService(uow.users)
-            user = await service.change_user_is_allowed_comment(user_id, current_user, is_allowed_comment)
-            await uow.commit()
-            return user

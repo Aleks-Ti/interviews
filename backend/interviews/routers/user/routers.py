@@ -9,7 +9,6 @@ from sqlalchemy.exc import NoResultFound
 from interviews.application.user import UserUseCases
 from interviews.core.exceptions import AUTH_EXEPTIONS, NoContent, UserAlreadyExistsException
 from interviews.domain.user.exceptions import (
-    AdminNotChangeCommentingRightsAdminAndOwner,
     AdminNotRestoreOrDeletedAnotherAdmin,
     NotAllowedEditPasswordToAdmin,
 )
@@ -149,24 +148,3 @@ async def restore_user(
     except Exception as err:
         logging.exception(f"Error restore user. User_id: {user_id} Error: {err}")
         raise HTTPException(status_code=400, detail="Error restore user")
-
-
-@user_router.patch("/change-commenting-rights", response_model=GetUserSchema)
-async def change_user_is_allowed_comment(
-    user_id: UUID,
-    is_allowed_comment: bool,
-    user_usecase: Annotated[UserUseCases, Depends(_user_usecase)],
-    auth_user: Annotated[User, Depends(role_required([RoleName.admin]))],
-):
-    try:
-        user = await user_usecase.change_user_is_allowed_comment(user_id, auth_user, is_allowed_comment)
-        return user
-    except NoResultFound:
-        raise HTTPException(status_code=404, detail="Not found item.")
-    except AdminNotChangeCommentingRightsAdminAndOwner:
-        raise HTTPException(
-            status_code=403, detail="Администратор не может запретить комментирование для другого администратора и автора блога."
-        )
-    except Exception as err:
-        logging.exception(f"Error to change commenting rights for user. User_id: {user_id} Error: {err}")
-        raise HTTPException(status_code=400, detail="Error to change commenting rights for  user")
