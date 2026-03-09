@@ -5,6 +5,7 @@ from interviews.domain.analysis.repository import AnalysisRepository
 from interviews.domain.interview.repository import AnswerRepository, InterviewRepository
 from interviews.domain.plan.repository import PlanRepository, QuestionRepository
 from interviews.infrastructure.database.connection import async_session_maker
+from interviews.infrastructure.repository.persistence.analysis import PostgresAnalysisRepository
 from interviews.infrastructure.repository.persistence.interview import PostgresAnswerRepository, PostgresInterviewRepository
 from interviews.infrastructure.repository.persistence.plan import PostgresPlanRepository
 from interviews.infrastructure.repository.persistence.question import PostgresQuestionRepository
@@ -20,7 +21,7 @@ class SQLAlchemyUnitOfWork(AbstractUnitOfWork):
         self.questions = PostgresQuestionRepository(self._session)
         self.interviews = PostgresInterviewRepository(self._session)
         self.answers = PostgresAnswerRepository(self._session)
-        # self.analyses = AnalysisRepository(self._session)
+        self.analyses = PostgresAnalysisRepository(self._session)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:

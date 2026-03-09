@@ -17,8 +17,6 @@ ai_router = APIRouter(
 )
 
 
-# --- dependency ---
-
 def get_ai_provider_dep() -> AIProvider:
     try:
         return get_ai_provider()
@@ -26,7 +24,7 @@ def get_ai_provider_dep() -> AIProvider:
         raise HTTPException(status_code=503, detail="AI provider is not configured")
 
 
-# --- request / response schemas ---
+# --- schemas ---
 
 class SuggestQuestionRequest(PreBasePydanticModel):
     context: str
@@ -74,6 +72,14 @@ async def suggest_question(
     ai: Annotated[AIProvider, Depends(get_ai_provider_dep)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> SuggestQuestionResponse:
+    """
+    Сгенерировать вопрос с помощью AI.
+
+    AI составляет один профессиональный вопрос под заданный контекст
+    (роль, технологии, уровень) и тип (<code>technical</code> / <code>behavioral</code> / <code>custom</code>).
+    Возвращает текст вопроса, тип и критерии оценки — готово для сохранения
+    через <code>POST /plan/{id}/questions</code>.
+    """
     try:
         result = await ai.suggest_question(data.context, data.question_type)
         return SuggestQuestionResponse(text=result.text, type=result.type, criteria=result.criteria)
@@ -90,6 +96,13 @@ async def get_expected_answer(
     ai: Annotated[AIProvider, Depends(get_ai_provider_dep)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ExpectedAnswerResponse:
+    """
+    Получить ожидаемый ответ на вопрос.
+
+    AI генерирует эталонный ответ на вопрос интервью — помогает интервьюеру,
+    который не разбирается в теме, понять что должен был ответить кандидат
+    и оценить полноту ответа.
+    """
     try:
         answer = await ai.get_expected_answer(data.question, data.criteria, data.context)
         return ExpectedAnswerResponse(answer=answer)
@@ -106,6 +119,18 @@ async def generate_plan(
     ai: Annotated[AIProvider, Depends(get_ai_provider_dep)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> GeneratePlanResponse:
+    """
+    Сгенерировать план интервью с помощью AI.
+
+    AI составляет полный план на основе свободного описания:
+    роль, уровень, стек, акцент. Возвращает название, описание и список
+    вопросов с критериями — <b>план не сохраняется автоматически</b>.
+    Клиент может отредактировать результат и сохранить через
+    <code>POST /plan</code>.
+
+    <b>Пример запроса:</b>
+    <code>{"prompt": "стажёр Python, веб-отдел, уклон в сети", "question_count": 8}</code>
+    """
     try:
         result = await ai.generate_plan(data.prompt, data.question_count)
         return GeneratePlanResponse(

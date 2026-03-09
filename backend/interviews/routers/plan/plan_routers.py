@@ -25,6 +25,12 @@ async def get_plans(
     plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[Plan]:
+    """
+    Получить список планов текущего пользователя.
+
+    Возвращает все планы с пагинацией. Каждый план включает список вопросов
+    и текущий статус (<code>draft</code> / <code>published</code>).
+    """
     try:
         return await plan_usecase.get_plans(current_user.id, query_params)
     except AUTH_EXEPTIONS:
@@ -40,6 +46,11 @@ async def get_plan(
     plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Plan:
+    """
+    Получить план по ID.
+
+    Возвращает план со всеми вопросами. Доступен только владельцу.
+    """
     try:
         return await plan_usecase.get_plan(plan_id, current_user.id)
     except PlanNotFound:
@@ -57,6 +68,12 @@ async def create_plan(
     plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Plan:
+    """
+    Создать новый план интервью.
+
+    Создаётся в статусе <code>draft</code> — доступен для редактирования.
+    Можно сразу передать список вопросов или добавить их позже.
+    """
     try:
         return await plan_usecase.create_plan(data, current_user.id)
     except AUTH_EXEPTIONS:
@@ -73,6 +90,13 @@ async def update_plan(
     plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Plan:
+    """
+    Обновить название или описание плана.
+
+    Доступно только для планов в статусе <code>draft</code>.
+    Если план уже опубликован — используйте <code>POST /plan/{id}/fork</code>
+    чтобы создать редактируемую копию.
+    """
     try:
         return await plan_usecase.update_plan(plan_id, data, current_user.id)
     except PlanNotFound:
@@ -92,6 +116,11 @@ async def delete_plan(
     plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
+    """
+    Удалить план.
+
+    Каскадно удаляет все вопросы и связанные интервью.
+    """
     try:
         await plan_usecase.delete_plan(plan_id, current_user.id)
     except PlanNotFound:
@@ -109,6 +138,13 @@ async def fork_plan(
     plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Plan:
+    """
+    Создать копию плана.
+
+    Создаёт новый план в статусе <code>draft</code> с именем
+    <code>«оригинал (copy)»</code> и полной копией вопросов.
+    Используйте для изменения опубликованных планов.
+    """
     try:
         return await plan_usecase.fork_plan(plan_id, current_user.id)
     except PlanNotFound:
@@ -126,6 +162,13 @@ async def publish_plan(
     plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Plan:
+    """
+    Опубликовать план.
+
+    Переводит план из <code>draft</code> в <code>published</code>.
+    После публикации план становится read-only — вопросы нельзя добавлять
+    или изменять. Вызывается автоматически при создании интервью.
+    """
     try:
         return await plan_usecase.publish_plan(plan_id, current_user.id)
     except PlanNotFound:

@@ -26,6 +26,12 @@ async def add_question(
     plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Question:
+    """
+    Добавить вопрос в план.
+
+    Доступно только для планов в статусе <code>draft</code>.
+    Тип вопроса: <code>technical</code>, <code>behavioral</code>, <code>custom</code>.
+    """
     try:
         return await plan_usecase.add_question(plan_id, data, current_user.id)
     except PlanNotFound:
@@ -47,6 +53,12 @@ async def update_question(
     plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Question:
+    """
+    Обновить вопрос.
+
+    Можно изменить текст, тип или критерии оценки.
+    Доступно только для планов в статусе <code>draft</code>.
+    """
     try:
         return await plan_usecase.update_question(plan_id, question_id, data, current_user.id)
     except PlanNotFound:
@@ -69,6 +81,12 @@ async def delete_question(
     plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
+    """
+    Удалить вопрос из плана.
+
+    Каскадно удаляет связанные ответы и их анализ.
+    Доступно только для планов в статусе <code>draft</code>.
+    """
     try:
         await plan_usecase.delete_question(plan_id, question_id, current_user.id)
     except PlanNotFound:

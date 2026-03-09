@@ -5,6 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from interviews.application.interview import InterviewUseCases
 from interviews.core.exceptions import AUTH_EXEPTIONS
+from interviews.domain.analysis.exceptions import AnalysisAlreadyExists, AnswerNotFound
+from interviews.domain.analysis.models import Analysis
+from interviews.domain.analysis.schemas import GetAnalysisSchema
 from interviews.domain.interview.exceptions import InterviewInvalidStatus, InterviewNotFound
 from interviews.domain.interview.models import Answer, Interview
 from interviews.domain.interview.schemas import (
@@ -32,6 +35,12 @@ async def get_interviews(
     interview_usecase: Annotated[InterviewUseCases, Depends(_interview_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[Interview]:
+    """
+    Получить список интервью текущего пользователя.
+
+    Возвращает все интервью, которые проводил текущий пользователь,
+    с пагинацией. Каждое интервью включает список поданных ответов.
+    """
     try:
         return await interview_usecase.get_interviews(current_user.id, query_params)
     except AUTH_EXEPTIONS:
@@ -47,6 +56,12 @@ async def get_interview(
     interview_usecase: Annotated[InterviewUseCases, Depends(_interview_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Interview:
+    """
+    Получить интервью по ID.
+
+    Возвращает детальную информацию об интервью вместе со всеми ответами кандидата.
+    Доступно только создателю интервью.
+    """
     try:
         return await interview_usecase.get_interview(interview_id, current_user.id)
     except InterviewNotFound:
@@ -64,6 +79,15 @@ async def start_interview(
     interview_usecase: Annotated[InterviewUseCases, Depends(_interview_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Interview:
+    """
+    Создать новое интервью по плану.
+
+    Создаёт интервью со статусом <code>pending</code>. Если план находился
+    в статусе <code>draft</code> — он автоматически публикуется (<code>published</code>),
+    после чего вопросы плана становятся неизменяемыми.
+
+    <b>Жизненный цикл:</b> <code>pending → in_progress → completed</code>
+    """
     try:
         return await interview_usecase.start_interview(data, current_user.id)
     except PlanNotFound:
@@ -81,6 +105,12 @@ async def begin_interview(
     interview_usecase: Annotated[InterviewUseCases, Depends(_interview_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Interview:
+    """
+    Начать интервью.
+
+    Переводит интервью из <code>pending</code> в <code>in_progress</code>.
+    Только в статусе <code>in_progress</code> можно подавать ответы кандидата.
+    """
     try:
         return await interview_usecase.begin_interview(interview_id, current_user.id)
     except InterviewNotFound:
@@ -100,6 +130,13 @@ async def complete_interview(
     interview_usecase: Annotated[InterviewUseCases, Depends(_interview_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Interview:
+    """
+    Завершить интервью.
+
+    Переводит интервью из <code>in_progress</code> в <code>completed</code>.
+    После завершения можно запустить анализ всех ответов через
+    <code>POST /interview/{id}/analyze</code>.
+    """
     try:
         return await interview_usecase.complete_interview(interview_id, current_user.id)
     except InterviewNotFound:
@@ -119,6 +156,11 @@ async def delete_interview(
     interview_usecase: Annotated[InterviewUseCases, Depends(_interview_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
+    """
+    Удалить интервью.
+
+    Каскадно удаляет все ответы и анализ к ним.
+    """
     try:
         await interview_usecase.delete_interview(interview_id, current_user.id)
     except InterviewNotFound:
@@ -137,6 +179,12 @@ async def submit_answer(
     interview_usecase: Annotated[InterviewUseCases, Depends(_interview_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Answer:
+    """
+    Записать ответ кандидата на вопрос.
+
+    Интервью должно быть в статусе <code>in_progress</code>.
+    Можно передать текстовый транскрипт и/или путь к аудио-файлу.
+    """
     try:
         return await interview_usecase.submit_answer(interview_id, data, current_user.id)
     except InterviewNotFound:
@@ -148,3 +196,63 @@ async def submit_answer(
     except Exception as err:
         logging.exception(f"Error submitting answer for interview {interview_id}. Error: {err}")
         raise HTTPException(status_code=400, detail="Error submitting answer")
+
+
+@interview_router.post("/{interview_id}/answers/{answer_id}/analyze", response_model=GetAnalysisSchema, status_code=201)
+async def analyze_answer(
+    interview_id: int,
+    answer_id: int,
+    interview_usecase: Annotated[InterviewUseCases, Depends(_interview_usecase)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> Analysis:
+    """
+    Запустить AI-анализ одного ответа.
+
+    AI оценивает ответ кандидата по критериям вопроса и возвращает:
+    оценку (0–10), резюме, сильные и слабые стороны, рекомендацию
+    (<code>hire</code> / <code>consider</code> / <code>reject</code>).
+
+    Анализ можно запустить в любой момент — как во время интервью,
+    так и после завершения. Повторный запуск для одного ответа вернёт 409.
+    """
+    if interview_usecase.ai is None:
+        raise HTTPException(status_code=503, detail="AI provider is not configured")
+    try:
+        return await interview_usecase.analyze_answer(interview_id, answer_id, current_user.id)
+    except InterviewNotFound:
+        raise HTTPException(status_code=404, detail="Interview not found")
+    except AnswerNotFound:
+        raise HTTPException(status_code=404, detail="Answer not found")
+    except AnalysisAlreadyExists:
+        raise HTTPException(status_code=409, detail="This answer has already been analyzed")
+    except AUTH_EXEPTIONS:
+        raise
+    except Exception as err:
+        logging.exception(f"Error analyzing answer {answer_id}. Error: {err}")
+        raise HTTPException(status_code=502, detail="AI request failed")
+
+
+@interview_router.post("/{interview_id}/analyze", response_model=list[GetAnalysisSchema], status_code=201)
+async def analyze_all(
+    interview_id: int,
+    interview_usecase: Annotated[InterviewUseCases, Depends(_interview_usecase)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> list[Analysis]:
+    """
+    Запустить AI-анализ всех ответов интервью.
+
+    Анализирует все ответы, у которых ещё нет анализа. Уже проанализированные
+    ответы пропускаются и возвращаются как есть. Удобно вызывать после
+    завершения интервью одним запросом.
+    """
+    if interview_usecase.ai is None:
+        raise HTTPException(status_code=503, detail="AI provider is not configured")
+    try:
+        return await interview_usecase.analyze_all(interview_id, current_user.id)
+    except InterviewNotFound:
+        raise HTTPException(status_code=404, detail="Interview not found")
+    except AUTH_EXEPTIONS:
+        raise
+    except Exception as err:
+        logging.exception(f"Error analyzing all answers for interview {interview_id}. Error: {err}")
+        raise HTTPException(status_code=502, detail="AI request failed")
