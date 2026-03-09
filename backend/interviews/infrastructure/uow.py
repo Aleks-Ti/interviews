@@ -5,6 +5,7 @@ from interviews.domain.analysis.repository import AnalysisRepository
 from interviews.domain.interview.repository import AnswerRepository, InterviewRepository
 from interviews.domain.plan.repository import PlanRepository, QuestionRepository
 from interviews.infrastructure.database.connection import async_session_maker
+from interviews.infrastructure.repository.persistence.interview import PostgresAnswerRepository, PostgresInterviewRepository
 from interviews.infrastructure.repository.persistence.plan import PostgresPlanRepository
 from interviews.infrastructure.repository.persistence.question import PostgresQuestionRepository
 from interviews.infrastructure.repository.persistence.user import PostgresAuthUserRepository, PostgresUserRepository
@@ -17,8 +18,8 @@ class SQLAlchemyUnitOfWork(AbstractUnitOfWork):
         self.auth_users = PostgresAuthUserRepository(self._session)
         self.plans = PostgresPlanRepository(self._session)
         self.questions = PostgresQuestionRepository(self._session)
-        # self.interviews = InterviewRepository(self._session)
-        # self.answers = AnswerRepository(self._session)
+        self.interviews = PostgresInterviewRepository(self._session)
+        self.answers = PostgresAnswerRepository(self._session)
         # self.analyses = AnalysisRepository(self._session)
         return self
 

@@ -9,6 +9,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from interviews.core.exceptions import ItemNotExist
 
+IdT = TypeVar("IdT", int, UUID)
 
 class HasId(Protocol):
     id: Any
@@ -25,7 +26,7 @@ class AbstractRepository(ABC, Generic[T]):
         raise NotImplementedError
 
     @abstractmethod
-    async def find_one(self, item_id: int | UUID) -> T:
+    async def find_one(self, item_id: IdT) -> T:
         raise NotImplementedError
 
     @abstractmethod
@@ -33,15 +34,15 @@ class AbstractRepository(ABC, Generic[T]):
         raise NotImplementedError
 
     @abstractmethod
-    async def update_one(self, item_id: int | UUID, data: dict) -> T:
+    async def update_one(self, item_id: IdT, data: dict) -> T:
         raise NotImplementedError
 
     @abstractmethod
-    async def delete_one(self, item_id: int | UUID) -> None:
+    async def delete_one(self, item_id: IdT) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    async def find_one_or_none(self, item_id: int | UUID) -> T | None:
+    async def find_one_or_none(self, item_id: IdT) -> T | None:
         raise NotImplementedError
 
 
@@ -67,7 +68,7 @@ class BaseImplementationRepository(AbstractRepository[TDomainModel], Generic[TOr
         orm_obj = res.scalar_one()
         return self._to_domain(orm_obj)
 
-    async def find_one(self, item_id: int | UUID) -> TDomainModel:
+    async def find_one(self, item_id: IdT) -> TDomainModel:
         stmt = select(self.model).where(self.model.id == item_id)
         res = await self._session.execute(stmt)
         return self._to_domain(res.scalar_one())
@@ -77,13 +78,13 @@ class BaseImplementationRepository(AbstractRepository[TDomainModel], Generic[TOr
         res = await self._session.execute(stmt)
         return self._to_domain_many(res.scalars().all())
 
-    async def update_one(self, item_id: int | UUID, data: dict) -> TDomainModel:
+    async def update_one(self, item_id: IdT, data: dict) -> TDomainModel:
         stmt = update(self.model).where(self.model.id == item_id).values(**data).returning(self.model)
         res = await self._session.execute(stmt)
         orm_obj = res.scalar_one()
         return self._to_domain(orm_obj)
 
-    async def delete_one(self, item_id: int | UUID) -> None:
+    async def delete_one(self, item_id: IdT) -> None:
         stmt = delete(self.model).where(self.model.id == item_id)
         res = await self._session.execute(stmt)
         if res.rowcount == 0:
@@ -94,7 +95,7 @@ class BaseImplementationRepository(AbstractRepository[TDomainModel], Generic[TOr
         res = await self._session.execute(stmt)
         return self._to_domain_many(res.scalars().all())
 
-    async def find_one_or_none(self, item_id: int | UUID) -> TDomainModel | None:
+    async def find_one_or_none(self, item_id: IdT) -> TDomainModel | None:
         stmt = select(self.model).where(self.model.id == item_id)
         res = await self._session.execute(stmt)
         orm_obj = res.scalar_one_or_none()
