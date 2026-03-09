@@ -1,7 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
+
+from interviews.domain.analysis.models import Analysis
 
 
 class InterviewType(StrEnum):
@@ -26,6 +28,7 @@ class Answer:
     interview_id: int
     date_create: datetime
     date_update: datetime
+    analysis: Analysis | None = field(default=None)
 
 
 @dataclass

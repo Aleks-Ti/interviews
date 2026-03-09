@@ -13,7 +13,7 @@ from interviews.routers.dependencies import get_current_user
 from interviews.routers.plan.depends import plan_usecase as _plan_usecase
 
 question_router = APIRouter(
-    prefix="/plan/{plan_id}/questions",
+    prefix="/plan/{plan_id}/question",
     tags=["questions"],
     responses={404: {"description": "Page not found"}},
 )

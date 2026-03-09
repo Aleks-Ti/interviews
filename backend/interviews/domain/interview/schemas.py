@@ -1,6 +1,7 @@
 from pydantic import Field
 
 from interviews.core.schemas import PreBasePydanticModel
+from interviews.domain.analysis.schemas import GetAnalysisSchema
 
 
 class InterviewFilters(PreBasePydanticModel):
@@ -27,6 +28,7 @@ class GetAnswerSchema(PreBasePydanticModel):
     answer: str
     transcript: str | None
     audio_path: str | None
+    analysis: GetAnalysisSchema | None = None
 
 
 class GetInterviewSchema(PreBasePydanticModel):

@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlalchemy import insert, select, update
 from sqlalchemy.orm import selectinload
 
+from interviews.domain.analysis.models import Analysis as DomainAnalysis
 from interviews.domain.interview.models import Answer as DomainAnswer
 from interviews.domain.interview.models import Interview as DomainInterview
 from interviews.domain.interview.repository import AnswerRepository, InterviewRepository
@@ -37,6 +38,15 @@ class PostgresInterviewRepository(
                     interview_id=a.interview_id,
                     date_create=a.date_create,
                     date_update=a.date_update,
+                    analysis=DomainAnalysis(
+                        id=a.analysis.id,
+                        score=a.analysis.score,
+                        summary=a.analysis.summary,
+                        strengths=a.analysis.strengths,
+                        weaknesses=a.analysis.weaknesses,
+                        recommendation=a.analysis.recomendation,
+                        answer_id=a.analysis.answer_id,
+                    ) if a.analysis else None,
                 )
                 for a in orm_obj.answers
             ],
@@ -49,7 +59,9 @@ class PostgresInterviewRepository(
         return await self.find_one(interview_id)
 
     def _with_answers(self):
-        return select(self.model).options(selectinload(self.model.answers))
+        return select(self.model).options(
+            selectinload(self.model.answers).selectinload(OrmAnswers.analysis)
+        )
 
     async def find_one(self, item_id: int) -> DomainInterview:
         stmt = self._with_answers().where(self.model.id == item_id)

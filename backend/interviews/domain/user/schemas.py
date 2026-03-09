@@ -28,7 +28,6 @@ class GetUserSchema(PreBasePydanticModel):
     is_active: bool
     date_create: datetime
     date_update: datetime
-    is_allowed_comment: bool
 
 
 class UserFilters(PreBasePydanticModel):

@@ -62,7 +62,7 @@ AI_MODEL=llama3
 
 ## Структура проекта
 
-```
+```bash
 interwiews/
 ├── backend/
 │   ├── interwiews/
