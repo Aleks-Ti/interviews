@@ -24,6 +24,12 @@ PLANS = [
         "description": "Базовый скрининг для любой роли. Мотивация, ожидания, культурный фит.",
         "status": "draft",
     },
+    {
+        "id": 3,
+        "name": "Python Стажёр — Веб-студия",
+        "description": "Интервью для стажёра Python в веб-студию. Проверяем базовые знания языка, понимание веба, Git, умение учиться и вписаться в команду. Не ждём глубокой экспертизы — смотрим на потенциал и мышление.",
+        "status": "published",
+    },
 ]
 
 QUESTIONS = [
@@ -63,6 +69,77 @@ QUESTIONS = [
         "text": "Какие у тебя зарплатные ожидания и когда ты готов выйти?",
         "type": "custom",
         "criteria": ["clarity", "realism", "flexibility"],
+    },
+    # Plan 3 — Python Стажёр Веб-студия
+    {
+        "id": 6,
+        "plan_id": 3,
+        "text": "Чем list отличается от tuple в Python? Когда ты используешь одно, а когда другое?",
+        "type": "technical",
+        "criteria": ["mutability understanding", "correct use cases", "knows at least one practical example"],
+    },
+    {
+        "id": 7,
+        "plan_id": 3,
+        "text": "Что такое виртуальное окружение в Python и зачем оно нужно?",
+        "type": "technical",
+        "criteria": ["understands isolation concept", "knows how to create (venv/pip)", "explains why dependencies matter"],
+    },
+    {
+        "id": 8,
+        "plan_id": 3,
+        "text": "Объясни разницу между GET и POST запросами. Когда ты используешь каждый из них?",
+        "type": "technical",
+        "criteria": ["correct semantics", "knows about request body vs query params", "real-world example"],
+    },
+    {
+        "id": 9,
+        "plan_id": 3,
+        "text": "Ты работал с Django или Flask? Расскажи что знаешь — хотя бы в теории.",
+        "type": "technical",
+        "criteria": ["awareness of at least one framework", "understands MVC/MTV concept", "honest about experience level"],
+    },
+    {
+        "id": 10,
+        "plan_id": 3,
+        "text": "Какие команды Git ты используешь чаще всего? Что такое ветка и зачем она нужна?",
+        "type": "technical",
+        "criteria": ["knows basic commands (commit, push, pull, branch)", "understands branching concept", "real workflow experience"],
+    },
+    {
+        "id": 11,
+        "plan_id": 3,
+        "text": "Что такое словарь (dict) в Python? Как бы ты посчитал количество вхождений каждого слова в тексте?",
+        "type": "technical",
+        "criteria": ["understands key-value structure", "can write or describe working solution", "knows about dict methods"],
+    },
+    {
+        "id": 12,
+        "plan_id": 3,
+        "text": "Расскажи про свой самый сложный учебный проект. Что было трудно и как справился?",
+        "type": "behavioral",
+        "criteria": ["concreteness (not abstract)", "problem-solving mindset", "takes ownership of difficulties"],
+    },
+    {
+        "id": 13,
+        "plan_id": 3,
+        "text": "Как ты реагируешь когда тебе говорят что твой код написан плохо и нужно переписать?",
+        "type": "behavioral",
+        "criteria": ["no defensiveness", "open to feedback", "asks clarifying questions rather than argues"],
+    },
+    {
+        "id": 14,
+        "plan_id": 3,
+        "text": "Как ты учишься самостоятельно? Что изучал в последние пару месяцев?",
+        "type": "behavioral",
+        "criteria": ["self-directed learning", "can name specific resource or topic", "curiosity and initiative"],
+    },
+    {
+        "id": 15,
+        "plan_id": 3,
+        "text": "Почему хочешь в веб-разработку и почему именно к нам в студию?",
+        "type": "custom",
+        "criteria": ["genuine motivation (not just 'money')", "knows something about the company", "realistic expectations"],
     },
 ]
 

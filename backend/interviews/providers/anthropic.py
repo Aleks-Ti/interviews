@@ -1,8 +1,21 @@
 import json
+import logging
+import re
 
 import anthropic
 
 from interviews.providers.base import AIProvider, GeneratedPlan, GeneratedQuestion, QuestionAnalysis
+
+
+def _parse_json(text: str) -> dict:
+    text = text.strip()
+    # Strip markdown code block if present: ```json ... ``` or ``` ... ```
+    match = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", text)
+    if match:
+        text = match.group(1).strip()
+    if not text:
+        raise ValueError("Empty response from AI provider")
+    return json.loads(text)
 
 _ANALYZE_PROMPT = """
 You are an experienced interviewer. Analyze the candidate's answer.
@@ -62,6 +75,9 @@ Respond ONLY with valid JSON:
 """.strip()
 
 
+_SYSTEM_PROMPT = "Ты — помощник интервьюера. Все текстовые поля в ответах (названия, описания, вопросы, критерии, итоги, сильные и слабые стороны) пиши на русском языке. JSON-ключи и enum-значения (hire, consider, reject, technical, behavioral, custom) оставляй как есть."
+
+
 class AnthropicProvider(AIProvider):
     def __init__(self, api_key: str, model: str = "claude-haiku-4-5-20251001") -> None:
         self._client = anthropic.AsyncAnthropic(api_key=api_key)
@@ -71,9 +87,12 @@ class AnthropicProvider(AIProvider):
         response = await self._client.messages.create(
             model=self._model,
             max_tokens=max_tokens,
+            system=_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": prompt}],
         )
-        return response.content[0].text
+        text = response.content[0].text if response.content else ""
+        logging.debug("AI raw response (stop_reason=%s): %r", response.stop_reason, text[:200])
+        return text
 
     async def transcribe(self, audio: bytes, filename: str = "audio.webm") -> str:
         raise NotImplementedError(
@@ -83,24 +102,24 @@ class AnthropicProvider(AIProvider):
 
     async def analyze_answer(self, question: str, answer: str, criteria: list[str]) -> QuestionAnalysis:
         prompt = _ANALYZE_PROMPT.format(question=question, answer=answer, criteria=", ".join(criteria))
-        data = json.loads(await self._complete(prompt))
+        data = _parse_json(await self._complete(prompt))
         return QuestionAnalysis(**data)
 
     async def suggest_question(self, context: str, question_type: str = "technical") -> GeneratedQuestion:
         prompt = _SUGGEST_QUESTION_PROMPT.format(context=context, question_type=question_type)
-        data = json.loads(await self._complete(prompt))
+        data = _parse_json(await self._complete(prompt))
         return GeneratedQuestion(**data)
 
     async def get_expected_answer(self, question: str, criteria: list[str], context: str) -> str:
         prompt = _EXPECTED_ANSWER_PROMPT.format(
             context=context, question=question, criteria=", ".join(criteria)
         )
-        data = json.loads(await self._complete(prompt, max_tokens=2048))
+        data = _parse_json(await self._complete(prompt, max_tokens=2048))
         return data["answer"]
 
     async def generate_plan(self, prompt: str, question_count: int = 10) -> GeneratedPlan:
         full_prompt = _GENERATE_PLAN_PROMPT.format(prompt=prompt, question_count=question_count)
-        data = json.loads(await self._complete(full_prompt, max_tokens=4096))
+        data = _parse_json(await self._complete(full_prompt, max_tokens=4096))
         return GeneratedPlan(
             name=data["name"],
             description=data["description"],
