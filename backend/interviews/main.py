@@ -1,9 +1,11 @@
 import logging
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from interviews.core.logger import ch
 from interviews.infrastructure.database.connection import migrate
@@ -51,3 +53,7 @@ app.add_middleware(
 )
 
 app.include_router(api)
+
+static_dir = Path("static")
+static_dir.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")

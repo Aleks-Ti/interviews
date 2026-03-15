@@ -1,7 +1,8 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from pydantic import BaseModel
 
 from interviews.application.interview import InterviewUseCases
 from interviews.core.exceptions import AUTH_EXEPTIONS
@@ -21,6 +22,11 @@ from interviews.domain.plan.exceptions import PlanNotFound
 from interviews.domain.user.models import User
 from interviews.routers.dependencies import get_current_user
 from interviews.routers.interview.depends import interview_usecase as _interview_usecase
+from interviews.utils.file_handler import handle_file_upload
+
+
+class AudioUploadResponse(BaseModel):
+    audio_path: str
 
 interview_router = APIRouter(
     prefix="/interview",
@@ -196,6 +202,65 @@ async def submit_answer(
     except Exception as err:
         logging.exception(f"Error submitting answer for interview {interview_id}. Error: {err}")
         raise HTTPException(status_code=400, detail="Error submitting answer")
+
+
+@interview_router.post("/{interview_id}/audio/{question_id}", response_model=AudioUploadResponse)
+async def upload_audio(
+    interview_id: int,
+    question_id: int,
+    file: Annotated[UploadFile, File(...)],
+    interview_usecase: Annotated[InterviewUseCases, Depends(_interview_usecase)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> AudioUploadResponse:
+    """
+    Загрузить аудио-ответ кандидата на вопрос.
+
+    Сохраняет файл в <code>static/audio/interview_{id}/</code>.
+    Поддерживает WebM (браузерная запись) и любой аудиоформат.
+    Возвращает путь к файлу для передачи в <code>POST /interview/{id}/answers</code>.
+    """
+    try:
+        await interview_usecase.get_interview(interview_id, current_user.id)
+    except InterviewNotFound:
+        raise HTTPException(status_code=404, detail="Interview not found")
+    except AUTH_EXEPTIONS:
+        raise
+
+    audio_path = await handle_file_upload(file, f"audio/interview_{interview_id}")
+    if not audio_path:
+        raise HTTPException(status_code=400, detail="File upload failed")
+    return AudioUploadResponse(audio_path=audio_path)
+
+
+@interview_router.post("/{interview_id}/answers/{answer_id}/transcribe", response_model=GetAnswerSchema)
+async def transcribe_answer(
+    interview_id: int,
+    answer_id: int,
+    interview_usecase: Annotated[InterviewUseCases, Depends(_interview_usecase)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> Answer:
+    """
+    Транскрибировать аудио уже сохранённого ответа.
+
+    Читает файл из <code>audio_path</code> ответа, отправляет в Whisper,
+    сохраняет результат в поле <code>transcript</code>.
+    Требует AI-провайдер с поддержкой транскрипции (OpenAI).
+    """
+    if interview_usecase.ai is None:
+        raise HTTPException(status_code=503, detail="AI provider is not configured")
+    try:
+        return await interview_usecase.transcribe_answer(interview_id, answer_id, current_user.id)
+    except InterviewNotFound:
+        raise HTTPException(status_code=404, detail="Interview not found")
+    except AnswerNotFound:
+        raise HTTPException(status_code=404, detail="Answer not found")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except AUTH_EXEPTIONS:
+        raise
+    except Exception as err:
+        logging.exception(f"Transcription failed for answer {answer_id}: {err}")
+        raise HTTPException(status_code=502, detail="Transcription failed")
 
 
 @interview_router.post("/{interview_id}/answers/{answer_id}/analyze", response_model=GetAnalysisSchema, status_code=201)

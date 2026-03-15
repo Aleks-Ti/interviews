@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -69,6 +69,35 @@ class GeneratePlanResponse(PreBasePydanticModel):
 
 
 # --- endpoints ---
+
+class TranscribeResponse(PreBasePydanticModel):
+    transcript: str
+
+
+@ai_router.post("/transcribe", response_model=TranscribeResponse)
+async def transcribe_audio(
+    file: Annotated[UploadFile, File(...)],
+    ai: Annotated[AIProvider, Depends(get_ai_provider_dep)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> TranscribeResponse:
+    """
+    Транскрибировать аудиофайл без сохранения в БД.
+
+    Используется для предварительной транскрипции перед сохранением ответа.
+    Поддерживает только провайдер OpenAI (Whisper).
+    """
+    try:
+        audio = await file.read()
+        transcript = await ai.transcribe(audio, file.filename or "audio.webm")
+        return TranscribeResponse(transcript=transcript)
+    except AUTH_EXEPTIONS:
+        raise
+    except NotImplementedError:
+        raise HTTPException(status_code=501, detail="Transcription is not supported by the current AI provider. Use AI_PROVIDER=openai.")
+    except Exception as err:
+        logging.exception(f"Transcription failed: {err}")
+        raise HTTPException(status_code=502, detail="Transcription failed")
+
 
 @ai_router.post("/question/suggest", response_model=SuggestQuestionResponse)
 async def suggest_question(

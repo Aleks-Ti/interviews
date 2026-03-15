@@ -71,3 +71,9 @@ class InterviewUseCases:
             results = await self._analysis_service(uow).analyze_all(interview_id, user_id)
             await uow.commit()
             return results
+
+    async def transcribe_answer(self, interview_id: int, answer_id: int, user_id: UUID) -> Answer:
+        async with self.uow as uow:
+            answer = await self._answer_service(uow).transcribe_answer(interview_id, answer_id, user_id, self.ai)
+            await uow.commit()
+            return answer

@@ -1,5 +1,7 @@
+from pathlib import Path
 from uuid import UUID
 
+from interviews.domain.analysis.exceptions import AnswerNotFound
 from interviews.domain.interview.exceptions import InterviewInvalidStatus, InterviewNotFound
 from interviews.domain.interview.models import Answer, Interview, InterviewStatus
 from interviews.domain.interview.repository import AnswerRepository, InterviewRepository
@@ -78,3 +80,16 @@ class AnswerService:
             "transcript": data.transcript,
             "audio_path": data.audio_path,
         })
+
+    async def transcribe_answer(self, interview_id: int, answer_id: int, user_id: UUID, ai) -> Answer:
+        interview = await self.interview_repository.find_one_or_none(interview_id)
+        if interview is None or interview.conducted_by != user_id:
+            raise InterviewNotFound
+        answer = next((a for a in interview.answers if a.id == answer_id), None)
+        if answer is None:
+            raise AnswerNotFound
+        if not answer.audio_path:
+            raise ValueError("No audio file for this answer")
+        audio_bytes = Path(answer.audio_path).read_bytes()
+        transcript = await ai.transcribe(audio_bytes, Path(answer.audio_path).name)
+        return await self.answer_repository.update_one(answer_id, {"transcript": transcript})

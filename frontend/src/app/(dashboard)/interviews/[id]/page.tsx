@@ -1,17 +1,188 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, use, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import { interviewsApi, plansApi, aiApi } from '@/lib/api-client';
 import type { Interview, Plan, Analysis, SubmitAnswerRequest, Question } from '@/lib/types';
+
+const staticUrl = (path: string) =>
+  `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace(/\/api$/, '')}/${path}`;
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/input';
 import { PageLoader, Spinner } from '@/components/ui/spinner';
 import axios from 'axios';
+
+type AudioMode = 'idle' | 'recording' | 'preview';
+
+function AudioSection({
+  interviewId,
+  questionId,
+  onAudioPath,
+  onTranscript,
+}: {
+  interviewId: number;
+  questionId: number;
+  onAudioPath: (path: string) => void;
+  onTranscript: (text: string) => void;
+}) {
+  const [mode, setMode] = useState<AudioMode>('idle');
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploaded, setUploaded] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [seconds, setSeconds] = useState(0);
+  const [error, setError] = useState('');
+  const mediaRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+
+  const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+  const afterBlob = async (blob: Blob, name: string) => {
+    setAudioBlob(blob);
+    setAudioUrl(URL.createObjectURL(blob));
+    setMode('preview');
+    setUploading(true);
+    setError('');
+    try {
+      const fd = new FormData();
+      fd.append('file', blob, name);
+      const res = await interviewsApi.uploadAudio(interviewId, questionId, fd);
+      onAudioPath(res.audio_path);
+      setUploaded(true);
+    } catch {
+      setError('Ошибка загрузки файла');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const startRec = async () => {
+    setError('');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        afterBlob(blob, 'recording.webm');
+      };
+      mr.start(100);
+      mediaRef.current = mr;
+      setMode('recording');
+      setSeconds(0);
+      timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+    } catch {
+      setError('Нет доступа к микрофону');
+    }
+  };
+
+  const stopRec = () => {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    mediaRef.current?.stop();
+    setMode('preview');
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) afterBlob(f, f.name);
+  };
+
+  const transcribe = async () => {
+    if (!audioBlob) return;
+    setTranscribing(true);
+    setError('');
+    try {
+      const fd = new FormData();
+      fd.append('file', audioBlob, 'audio.webm');
+      const res = await aiApi.transcribe(fd);
+      onTranscript(res.transcript);
+    } catch {
+      setError('Транскрипция недоступна (нужен AI_PROVIDER=openai)');
+    } finally {
+      setTranscribing(false);
+    }
+  };
+
+  const reset = () => {
+    setMode('idle');
+    setAudioBlob(null);
+    setAudioUrl(null);
+    setUploaded(false);
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const btnCls = 'flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-medium transition-all border';
+  const secondary = `${btnCls} border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-text-subtle)]`;
+  const primary = `${btnCls} border-[var(--color-gold)]/40 text-[var(--color-gold)] hover:bg-[var(--color-gold)]/10`;
+
+  return (
+    <div className="flex flex-col gap-2">
+      {mode === 'idle' && (
+        <div className="flex gap-2">
+          <button onClick={startRec} className={secondary}>
+            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm-1 16.93V20H9v2h6v-2h-2v-2.07A8 8 0 0 0 20 11h-2a6 6 0 0 1-12 0H4a8 8 0 0 0 7 7.93z"/>
+            </svg>
+            Записать
+          </button>
+          <button onClick={() => fileRef.current?.click()} className={secondary}>
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Загрузить файл
+          </button>
+          <input ref={fileRef} type="file" accept="audio/*" className="hidden" onChange={onFileChange} />
+        </div>
+      )}
+
+      {mode === 'recording' && (
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20">
+          <span className="w-2 h-2 rounded-full bg-[var(--color-danger)] animate-pulse" />
+          <span className="text-xs font-mono text-[var(--color-danger)]">{fmt(seconds)}</span>
+          <button onClick={stopRec} className="ml-auto flex items-center gap-1.5 px-3 h-7 rounded-lg text-xs font-medium bg-[var(--color-danger)] text-white">
+            ⬛ Стоп
+          </button>
+        </div>
+      )}
+
+      {mode === 'preview' && audioUrl && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <audio src={audioUrl} controls className="flex-1 h-8 min-w-0" style={{ colorScheme: 'dark' }} />
+            <button onClick={reset} className="p-1 text-[var(--color-text-subtle)] hover:text-[var(--color-danger)]">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            {uploading && <span className="text-xs text-[var(--color-text-subtle)]">Загрузка...</span>}
+            {uploaded && !uploading && (
+              <span className="text-xs text-[var(--color-success)]">✓ Сохранено</span>
+            )}
+            <button onClick={transcribe} disabled={transcribing} className={`${primary} disabled:opacity-40`}>
+              {transcribing ? <Spinner className="w-3 h-3" /> : '✦'}
+              {transcribing ? 'Транскрибирую...' : 'Транскрибировать'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {error && <p className="text-xs text-[var(--color-danger)]">{error}</p>}
+    </div>
+  );
+}
 
 function ScoreBar({ score }: { score: number }) {
   const pct = Math.round((score / 10) * 100);
@@ -174,6 +345,37 @@ function AnswerAnalysisSection({
   );
 }
 
+function TranscribeAnswerButton({ interviewId, answerId }: { interviewId: number; answerId: number }) {
+  const qc = useQueryClient();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleTranscribe = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await interviewsApi.transcribeAnswer(interviewId, answerId);
+      qc.invalidateQueries({ queryKey: ['interview', interviewId] });
+    } catch {
+      setError('Транскрипция недоступна');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const btnCls = 'flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-medium transition-all border border-[var(--color-gold)]/40 text-[var(--color-gold)] hover:bg-[var(--color-gold)]/10 disabled:opacity-40';
+
+  return (
+    <div className="flex items-center gap-2">
+      <button onClick={handleTranscribe} disabled={loading} className={btnCls}>
+        {loading ? <Spinner className="w-3 h-3" /> : '✦'}
+        {loading ? 'Транскрибирую...' : 'Транскрибировать'}
+      </button>
+      {error && <p className="text-xs text-[var(--color-danger)]">{error}</p>}
+    </div>
+  );
+}
+
 export default function InterviewDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const interviewId = parseInt(id);
@@ -182,6 +384,7 @@ export default function InterviewDetailPage({ params }: { params: Promise<{ id: 
 
   const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
   const [answerText, setAnswerText] = useState('');
+  const [answerAudioPath, setAnswerAudioPath] = useState<string | null>(null);
   const [answerError, setAnswerError] = useState('');
   const [analyzingAll, setAnalyzingAll] = useState(false);
 
@@ -212,6 +415,7 @@ export default function InterviewDetailPage({ params }: { params: Promise<{ id: 
       qc.invalidateQueries({ queryKey: ['interview', interviewId] });
       setActiveQuestionId(null);
       setAnswerText('');
+      setAnswerAudioPath(null);
     },
     onError: (err) => {
       if (axios.isAxiosError(err)) setAnswerError(err.response?.data?.detail ?? 'Ошибка');
@@ -338,25 +542,30 @@ export default function InterviewDetailPage({ params }: { params: Promise<{ id: 
 
                 {/* Answer form */}
                 {isActive && (
-                  <div className="border-t border-[var(--color-border)] pt-4 mt-3">
+                  <div className="border-t border-[var(--color-border)] pt-4 mt-3 flex flex-col gap-3">
+                    <AudioSection
+                      interviewId={interviewId}
+                      questionId={q.id}
+                      onAudioPath={(path) => setAnswerAudioPath(path)}
+                      onTranscript={(text) => setAnswerText(text)}
+                    />
                     <Textarea
                       label="Ответ кандидата"
-                      placeholder="Запишите ответ..."
+                      placeholder="Запишите ответ или транскрибируйте аудио..."
                       rows={4}
                       value={answerText}
                       onChange={(e) => setAnswerText(e.target.value)}
-                      autoFocus
                     />
-                    {answerError && <p className="text-sm text-[var(--color-danger)] mt-1">{answerError}</p>}
-                    <div className="flex gap-2 justify-end mt-3">
-                      <Button variant="ghost" size="sm" onClick={() => { setActiveQuestionId(null); setAnswerText(''); }}>
+                    {answerError && <p className="text-sm text-[var(--color-danger)]">{answerError}</p>}
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="ghost" size="sm" onClick={() => { setActiveQuestionId(null); setAnswerText(''); setAnswerAudioPath(null); }}>
                         Отмена
                       </Button>
                       <Button size="sm" loading={submitting}
                         onClick={() => {
                           if (!answerText.trim()) { setAnswerError('Введите ответ'); return; }
                           setAnswerError('');
-                          submitAnswer({ question_id: q.id, answer: answerText });
+                          submitAnswer({ question_id: q.id, answer: answerText, audio_path: answerAudioPath ?? undefined });
                         }}>
                         Сохранить ответ
                       </Button>
@@ -367,6 +576,19 @@ export default function InterviewDetailPage({ params }: { params: Promise<{ id: 
                 {/* Saved answer + analysis */}
                 {answer && !isActive && (
                   <div className="border-t border-[var(--color-border)] pt-3 mt-3">
+                    {answer.audio_path && (
+                      <div className="mb-3 flex flex-col gap-2">
+                        <audio src={staticUrl(answer.audio_path)} controls className="w-full h-8" style={{ colorScheme: 'dark' }} />
+                        {!answer.transcript && (
+                          <TranscribeAnswerButton interviewId={interviewId} answerId={answer.id} />
+                        )}
+                        {answer.transcript && (
+                          <p className="text-xs text-[var(--color-text-subtle)] italic leading-relaxed">
+                            📝 {answer.transcript}
+                          </p>
+                        )}
+                      </div>
+                    )}
                     <p className="text-xs font-medium text-[var(--color-text-muted)] mb-2">Ответ кандидата</p>
                     <p className="text-sm text-[var(--color-text)] leading-relaxed bg-[var(--color-surface-2)] px-3 py-2.5 rounded-xl">
                       {answer.answer}
