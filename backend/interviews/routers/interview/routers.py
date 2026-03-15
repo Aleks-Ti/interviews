@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 
 from interviews.application.interview import InterviewUseCases
@@ -22,7 +22,7 @@ from interviews.domain.plan.exceptions import PlanNotFound
 from interviews.domain.user.models import User
 from interviews.routers.dependencies import get_current_user
 from interviews.routers.interview.depends import interview_usecase as _interview_usecase
-from interviews.utils.file_handler import handle_file_upload
+from interviews.utils.file_handler import handle_file_upload, validated_audio_file
 
 
 class AudioUploadResponse(BaseModel):
@@ -208,7 +208,7 @@ async def submit_answer(
 async def upload_audio(
     interview_id: int,
     question_id: int,
-    file: Annotated[UploadFile, File(...)],
+    file: Annotated[UploadFile, Depends(validated_audio_file)],
     interview_usecase: Annotated[InterviewUseCases, Depends(_interview_usecase)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> AudioUploadResponse:
