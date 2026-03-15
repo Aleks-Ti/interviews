@@ -30,11 +30,22 @@ class UpdateQuestionSchema(PreBasePydanticModel):
     criteria: list[str] | None = None
 
 
+class ReorderQuestionItem(PreBasePydanticModel):
+    id: int
+    position: int
+
+
+class ReorderQuestionsSchema(PreBasePydanticModel):
+    questions: list[ReorderQuestionItem]
+
+
 class GetQuestionSchema(PreBasePydanticModel):
     id: int
     text: str
     type: str
     criteria: list[str]
+    position: int = 0
+    expected_answer: str | None = None
 
 
 class GetPlanSchema(PreBasePydanticModel):

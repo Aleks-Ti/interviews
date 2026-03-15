@@ -7,7 +7,7 @@ from interviews.application.plan import PlanUseCases
 from interviews.core.exceptions import AUTH_EXEPTIONS
 from interviews.domain.plan.exceptions import PlanNotEditable, PlanNotFound, QuestionNotFound
 from interviews.domain.plan.models import Question
-from interviews.domain.plan.schemas import CreateQuestionSchema, GetQuestionSchema, UpdateQuestionSchema
+from interviews.domain.plan.schemas import CreateQuestionSchema, GetQuestionSchema, ReorderQuestionsSchema, UpdateQuestionSchema
 from interviews.domain.user.models import User
 from interviews.routers.dependencies import get_current_user
 from interviews.routers.plan.depends import plan_usecase as _plan_usecase
@@ -72,6 +72,31 @@ async def update_question(
     except Exception as err:
         logging.exception(f"Error updating question {question_id}. Error: {err}")
         raise HTTPException(status_code=400, detail="Error updating question")
+
+
+@question_router.put("/reorder", status_code=204)
+async def reorder_questions(
+    plan_id: int,
+    data: ReorderQuestionsSchema,
+    plan_usecase: Annotated[PlanUseCases, Depends(_plan_usecase)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> None:
+    """
+    Изменить порядок вопросов в плане.
+
+    Принимает список вопросов с новыми позициями. Доступно только для планов в статусе <code>draft</code>.
+    """
+    try:
+        await plan_usecase.reorder_questions(plan_id, data, current_user.id)
+    except PlanNotFound:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    except PlanNotEditable:
+        raise HTTPException(status_code=409, detail="Plan is published and cannot be edited.")
+    except AUTH_EXEPTIONS:
+        raise
+    except Exception as err:
+        logging.exception(f"Error reordering questions in plan {plan_id}. Error: {err}")
+        raise HTTPException(status_code=400, detail="Error reordering questions")
 
 
 @question_router.delete("/{question_id}", status_code=204)

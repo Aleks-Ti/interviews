@@ -56,8 +56,8 @@ function AnalysisCard({ analysis }: { analysis: Analysis }) {
 }
 
 function ExpectedAnswerBlock({ question }: { question: Question }) {
-  const [show, setShow] = useState(false);
-  const [expected, setExpected] = useState('');
+  const [show, setShow] = useState(!!question.expected_answer);
+  const [expected, setExpected] = useState(question.expected_answer ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -70,6 +70,7 @@ function ExpectedAnswerBlock({ question }: { question: Question }) {
         question: question.text,
         criteria: question.criteria,
         context: question.type,
+        question_id: question.id,
       });
       setExpected(result.answer);
       setShow(true);

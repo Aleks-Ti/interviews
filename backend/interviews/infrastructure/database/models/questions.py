@@ -11,6 +11,8 @@ class Questions(Base):
     text: Mapped[str] = mapped_column(sa.Text, unique=False, nullable=False)
     type: Mapped[str] = mapped_column(sa.String(64), unique=False, nullable=False)
     criteria: Mapped[dict] = mapped_column(sa.JSON, unique=False, nullable=False)
+    position: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0, server_default="0")
+    expected_answer: Mapped[str | None] = mapped_column(sa.Text, nullable=True, default=None)
     date_create = mapped_column(
         sa.DateTime(timezone=True),
         unique=False,

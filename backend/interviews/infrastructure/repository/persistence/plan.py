@@ -24,18 +24,23 @@ class PostgresPlanRepository(BaseImplementationRepository[OrmPlans, DomainPlan],
             created_by_user_id=orm_obj.created_by_user_id,
             date_create=orm_obj.date_create,
             date_update=orm_obj.date_update,
-            questions=[
-                DomainQuestion(
-                    id=q.id,
-                    text=q.text,
-                    type=q.type,
-                    criteria=q.criteria,
-                    plan_id=q.plan_id,
-                    date_create=q.date_create,
-                    date_update=q.date_update,
-                )
-                for q in orm_obj.questions
-            ],
+            questions=sorted(
+                [
+                    DomainQuestion(
+                        id=q.id,
+                        text=q.text,
+                        type=q.type,
+                        criteria=q.criteria,
+                        plan_id=q.plan_id,
+                        date_create=q.date_create,
+                        date_update=q.date_update,
+                        position=q.position,
+                        expected_answer=q.expected_answer,
+                    )
+                    for q in orm_obj.questions
+                ],
+                key=lambda q: (q.position, q.id),
+            ),
         )
 
     def _with_questions(self):

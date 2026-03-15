@@ -79,9 +79,10 @@ class QuestionService:
         return plan
 
     async def add_question(self, plan_id: int, data: CreateQuestionSchema, user_id: UUID) -> Question:
-        await self._get_editable_plan(plan_id, user_id)
+        plan = await self._get_editable_plan(plan_id, user_id)
+        next_position = max((q.position for q in plan.questions), default=-1) + 1
         return await self.question_repository.add_one(
-            {"text": data.text, "type": data.type, "criteria": data.criteria, "plan_id": plan_id}
+            {"text": data.text, "type": data.type, "criteria": data.criteria, "plan_id": plan_id, "position": next_position}
         )
 
     async def update_question(
@@ -99,3 +100,7 @@ class QuestionService:
         if question is None or question.plan_id != plan_id:
             raise QuestionNotFound
         await self.question_repository.delete_one(question_id)
+
+    async def reorder_questions(self, plan_id: int, items: list[dict], user_id: UUID) -> None:
+        await self._get_editable_plan(plan_id, user_id)
+        await self.question_repository.reorder(items)

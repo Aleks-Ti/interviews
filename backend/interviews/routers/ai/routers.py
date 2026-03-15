@@ -3,10 +3,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from interviews.core.exceptions import AUTH_EXEPTIONS
 from interviews.core.schemas import PreBasePydanticModel
 from interviews.domain.user.models import User
+from interviews.infrastructure.database.connection import get_async_session
+from interviews.infrastructure.repository.persistence.question import PostgresQuestionRepository
 from interviews.providers.base import AIProvider
 from interviews.providers.factory import get_ai_provider
 from interviews.routers.dependencies import get_current_user
@@ -41,6 +44,7 @@ class ExpectedAnswerRequest(PreBasePydanticModel):
     question: str
     criteria: list[str]
     context: str
+    question_id: int | None = None
 
 
 class ExpectedAnswerResponse(PreBasePydanticModel):
@@ -95,16 +99,22 @@ async def get_expected_answer(
     data: ExpectedAnswerRequest,
     ai: Annotated[AIProvider, Depends(get_ai_provider_dep)],
     current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> ExpectedAnswerResponse:
     """
     Получить ожидаемый ответ на вопрос.
 
     AI генерирует эталонный ответ на вопрос интервью — помогает интервьюеру,
     который не разбирается в теме, понять что должен был ответить кандидат
-    и оценить полноту ответа.
+    и оценить полноту ответа. Если передан <code>question_id</code>, ответ
+    сохраняется в вопрос и при следующем запросе возвращается без обращения к AI.
     """
     try:
         answer = await ai.get_expected_answer(data.question, data.criteria, data.context)
+        if data.question_id is not None:
+            repo = PostgresQuestionRepository(session)
+            await repo.update_one(data.question_id, {"expected_answer": answer})
+            await session.commit()
         return ExpectedAnswerResponse(answer=answer)
     except AUTH_EXEPTIONS:
         raise

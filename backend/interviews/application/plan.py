@@ -6,6 +6,7 @@ from interviews.domain.plan.schemas import (
     CreatePlanSchema,
     CreateQuestionSchema,
     PlanFilters,
+    ReorderQuestionsSchema,
     UpdatePlanSchema,
     UpdateQuestionSchema,
 )
@@ -76,4 +77,10 @@ class PlanUseCases:
     async def delete_question(self, plan_id: int, question_id: int, user_id: UUID) -> None:
         async with self.uow as uow:
             await self._question_service(uow).delete_question(plan_id, question_id, user_id)
+            await uow.commit()
+
+    async def reorder_questions(self, plan_id: int, data: ReorderQuestionsSchema, user_id: UUID) -> None:
+        async with self.uow as uow:
+            items = [{"id": item.id, "position": item.position} for item in data.questions]
+            await self._question_service(uow).reorder_questions(plan_id, items, user_id)
             await uow.commit()

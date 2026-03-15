@@ -20,8 +20,9 @@ function StartInterviewModal({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState('');
 
   const { data: plans } = useQuery<Plan[]>({
-    queryKey: ['plans'],
+    queryKey: ['plans', 'for-interview-modal'],
     queryFn: () => plansApi.list({ page: 1, page_size: 100 }),
+    staleTime: 0,
   });
 
   const publishedPlans = plans?.filter((p) => p.status === 'published') ?? [];

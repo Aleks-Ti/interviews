@@ -16,13 +16,13 @@ PLANS = [
         "id": 1,
         "name": "Python Backend Developer",
         "description": "Техническое интервью для бэкенд-разработчиков на Python. Охватывает asyncio, ORM, архитектуру и опыт решения реальных задач.",
-        "status": "draft",
+        "status": "published",
     },
     {
         "id": 2,
         "name": "HR Screening (General)",
         "description": "Базовый скрининг для любой роли. Мотивация, ожидания, культурный фит.",
-        "status": "draft",
+        "status": "published",
     },
     {
         "id": 3,

@@ -162,7 +162,10 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
 
   const { mutate: publishPlan, isPending: publishing } = useMutation({
     mutationFn: () => plansApi.publish(planId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['plan', planId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['plan', planId] });
+      qc.invalidateQueries({ queryKey: ['plans'] });
+    },
   });
 
   const { mutate: forkPlan, isPending: forking } = useMutation({
@@ -187,6 +190,20 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
     mutationFn: (qid: number) => questionsApi.delete(planId, qid),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['plan', planId] }),
   });
+
+  const { mutate: reorderQuestions } = useMutation({
+    mutationFn: (questions: { id: number; position: number }[]) =>
+      questionsApi.reorder(planId, { questions }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['plan', planId] }),
+  });
+
+  const handleMove = (idx: number, direction: 'up' | 'down') => {
+    if (!plan) return;
+    const qs = [...plan.questions];
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    [qs[idx], qs[swapIdx]] = [qs[swapIdx], qs[idx]];
+    reorderQuestions(qs.map((q, i) => ({ id: q.id, position: i })));
+  };
 
   if (isLoading) return <PageLoader />;
   if (!plan) return <p className="text-[var(--color-text-muted)]">План не найден</p>;
@@ -286,33 +303,59 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
         ) : (
           plan.questions.map((q, idx) => (
             <Card key={q.id} className="relative group">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-xs font-mono text-[var(--color-text-subtle)]">#{idx + 1}</span>
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-muted)]">{q.type}</span>
+              <div className="flex items-start gap-3">
+                {/* Reorder controls */}
+                {isDraft && (
+                  <div className="flex flex-col gap-0.5 mt-0.5 shrink-0">
+                    <button
+                      onClick={() => handleMove(idx, 'up')}
+                      disabled={idx === 0}
+                      className="p-1 rounded text-[var(--color-text-subtle)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-2)] disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleMove(idx, 'down')}
+                      disabled={idx === plan.questions.length - 1}
+                      className="p-1 rounded text-[var(--color-text-subtle)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-2)] disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
                   </div>
-                  <p className="text-sm text-[var(--color-text)] leading-relaxed">{q.text}</p>
-                  {q.criteria.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2.5">
-                      {q.criteria.map((c, i) => (
-                        <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-gold)]/10 text-[var(--color-gold)]">
-                          {c}
-                        </span>
-                      ))}
+                )}
+
+                <div className="flex-1 flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-xs font-mono text-[var(--color-text-subtle)]">#{idx + 1}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-muted)]">{q.type}</span>
                     </div>
+                    <p className="text-sm text-[var(--color-text)] leading-relaxed">{q.text}</p>
+                    {q.criteria.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2.5">
+                        {q.criteria.map((c, i) => (
+                          <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-gold)]/10 text-[var(--color-gold)]">
+                            {c}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {isDraft && (
+                    <button
+                      onClick={() => { if (confirm('Удалить вопрос?')) deleteQuestion(q.id); }}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-[var(--color-text-subtle)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-all"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   )}
                 </div>
-                {isDraft && (
-                  <button
-                    onClick={() => { if (confirm('Удалить вопрос?')) deleteQuestion(q.id); }}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-[var(--color-text-subtle)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-all"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                )}
               </div>
             </Card>
           ))

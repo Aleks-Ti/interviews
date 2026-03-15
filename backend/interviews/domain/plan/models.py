@@ -24,6 +24,8 @@ class Question:
     plan_id: int
     date_create: datetime
     date_update: datetime
+    position: int = 0
+    expected_answer: str | None = None
 
 
 @dataclass

@@ -28,4 +28,7 @@ class PlanRepository(AbstractRepository[Plan]):
         raise NotImplementedError
 
 
-class QuestionRepository(AbstractRepository[Question]): ...
+class QuestionRepository(AbstractRepository[Question]):
+    @abstractmethod
+    async def reorder(self, items: list[dict]) -> None:
+        raise NotImplementedError
