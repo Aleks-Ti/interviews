@@ -3,6 +3,7 @@
 import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import ReactMarkdown from 'react-markdown';
 import { interviewsApi, plansApi, aiApi } from '@/lib/api-client';
 import type { Interview, Plan, Analysis, SubmitAnswerRequest, Question } from '@/lib/types';
 import { Card } from '@/components/ui/card';
@@ -102,7 +103,15 @@ function ExpectedAnswerBlock({ question }: { question: Question }) {
             <p className="text-xs text-[var(--color-text-subtle)] font-medium">Ожидаемый ответ</p>
             <button onClick={() => setShow(false)} className="text-xs text-[var(--color-text-subtle)] hover:text-[var(--color-text)]">скрыть</button>
           </div>
-          <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">{expected}</p>
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => <p className="text-xs text-[var(--color-text-muted)] leading-relaxed mb-1 last:mb-0">{children}</p>,
+              ul: ({ children }) => <ul className="text-xs text-[var(--color-text-muted)] space-y-0.5 pl-3 list-disc mb-1">{children}</ul>,
+              li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+              strong: ({ children }) => <strong className="font-semibold text-[var(--color-text)]">{children}</strong>,
+              code: ({ children }) => <code className="font-mono bg-[var(--color-surface-3,#2a2a2a)] px-1 rounded text-[var(--color-text)]">{children}</code>,
+            }}
+          >{expected}</ReactMarkdown>
         </div>
       )}
     </div>

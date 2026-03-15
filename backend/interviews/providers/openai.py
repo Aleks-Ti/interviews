@@ -33,16 +33,19 @@ Respond ONLY with valid JSON:
 """.strip()
 
 _EXPECTED_ANSWER_PROMPT = """
-You are an expert in the following domain: {context}
+You are an interview assistant. Be concise.
 
-Write an ideal expected answer to the interview question below.
-This will help an interviewer (who may not know the topic) evaluate the candidate's response.
-
+Context: {context}
 Question: {question}
-Evaluation criteria: {criteria}
+Criteria: {criteria}
+
+- Technical question → give the correct answer directly, key points only (3-5 bullets max).
+- Behavioral/abstract question → list 3-5 short bullet points of what the candidate should mention.
+
+No preamble. No "the candidate should". Just the substance. Max 80 words.
 
 Respond ONLY with valid JSON:
-{{"answer": "<expected answer covering all key points a strong candidate should mention>"}}
+{{"answer": "<answer>"}}
 """.strip()
 
 _GENERATE_PLAN_PROMPT = """

@@ -75,6 +75,86 @@ interwiews/
 └── docker-compose.yml
 ```
 
+## Разработка
+
+### Требования
+
+- Python 3.12+, [uv](https://github.com/astral-sh/uv)
+- Node.js 20+, npm
+- Docker (для БД)
+- [Task](https://taskfile.dev) (`task`)
+
+### 1. Переменные окружения
+
+```bash
+cp .env.example .env
+# заполни AI_API_KEY и при необходимости остальные параметры
+```
+
+### 2. База данных
+
+Запустить PostgreSQL в Docker (данные сохраняются между перезапусками):
+
+```bash
+cd backend
+task postgres:up:volume
+```
+
+Применить миграции и загрузить начальные данные:
+
+```bash
+task alembic:migrate
+task seed:load
+```
+
+Остановить БД:
+
+```bash
+task postgres:stop
+```
+
+### 3. Backend
+
+Установить зависимости (один раз):
+
+```bash
+cd backend
+task uv:install:all
+```
+
+Запустить в режиме разработки (с hot-reload):
+
+```bash
+cd backend
+task start
+```
+
+Запустить в продакшн-режиме (uvicorn, 4 воркера):
+
+```bash
+cd backend
+source .env
+uv run gunicorn --bind $HOST:$PORT "$APP_MODULE" -k uvicorn.workers.UvicornWorker -w 4
+```
+
+API будет доступно по адресу `http://localhost:8000`.
+
+### 4. Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Фронт поднимается на `http://localhost:3000` по умолчанию. Для другого порта:
+
+```bash
+npm run dev -- -p 3001
+```
+
+---
+
 ## Лицензия
 
 MIT — форкай, деплой, адаптируй под свои нужды.
