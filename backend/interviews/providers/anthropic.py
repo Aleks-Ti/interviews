@@ -97,12 +97,6 @@ class AnthropicProvider(AIProvider):
         logging.debug("AI raw response (stop_reason=%s): %r", response.stop_reason, text[:200])
         return text
 
-    async def transcribe(self, audio: bytes, filename: str = "audio.webm") -> str:
-        raise NotImplementedError(
-            "Anthropic does not support audio transcription. "
-            "Set AI_PROVIDER=openai or add a dedicated transcription service."
-        )
-
     async def analyze_answer(self, question: str, answer: str, criteria: list[str]) -> QuestionAnalysis:
         prompt = _ANALYZE_PROMPT.format(question=question, answer=answer, criteria=", ".join(criteria))
         data = _parse_json(await self._complete(prompt))

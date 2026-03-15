@@ -1,5 +1,4 @@
 import json
-from io import BytesIO
 
 from openai import AsyncOpenAI
 
@@ -79,13 +78,6 @@ class OpenAIProvider(AIProvider):
             max_tokens=max_tokens,
         )
         return response.choices[0].message.content
-
-    async def transcribe(self, audio: bytes, filename: str = "audio.webm") -> str:
-        response = await self._client.audio.transcriptions.create(
-            model="whisper-1",
-            file=(filename, BytesIO(audio)),
-        )
-        return response.text
 
     async def analyze_answer(self, question: str, answer: str, criteria: list[str]) -> QuestionAnalysis:
         prompt = _ANALYZE_PROMPT.format(question=question, answer=answer, criteria=", ".join(criteria))

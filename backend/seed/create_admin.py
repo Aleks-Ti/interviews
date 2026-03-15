@@ -23,25 +23,9 @@ async def user() -> None:
     async with async_session_maker() as session:
         query = text(
             """
-            INSERT INTO public.users (
-                id,
-                email,
-                password,
-                role_id,
-                is_active,
-                date_create,
-                date_update
-            )
-            VALUES (
-                :id,
-                :email,
-                :password,
-                :role_id,
-                :is_active,
-                :date_create,
-                :date_update
-            )
-            RETURNING id
+            INSERT INTO public.users (id, email, password, role_id, is_active, date_create, date_update)
+            VALUES (:id, :email, :password, :role_id, :is_active, :date_create, :date_update)
+            ON CONFLICT (email) DO NOTHING
         """
         )
         values = {

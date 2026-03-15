@@ -86,6 +86,7 @@ class AIProviderConfig:
     api_key: str | None = getenv("AI_API_KEY")
     base_url: str | None = getenv("AI_BASE_URL")       # for ollama: http://localhost:11434
     model: str | None = getenv("AI_MODEL")             # optional model override
+    whisper_model: str = getenv("WHISPER_MODEL", "base")  # tiny | base | small | medium | large
 
 
 @dataclass

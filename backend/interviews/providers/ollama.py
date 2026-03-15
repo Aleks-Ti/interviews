@@ -79,12 +79,6 @@ class OllamaProvider(AIProvider):
             response.raise_for_status()
             return response.json()["response"]
 
-    async def transcribe(self, audio: bytes, filename: str = "audio.webm") -> str:
-        raise NotImplementedError(
-            "Ollama does not support audio transcription natively. "
-            "Run whisper.cpp with an HTTP server and handle transcription separately."
-        )
-
     async def analyze_answer(self, question: str, answer: str, criteria: list[str]) -> QuestionAnalysis:
         prompt = _ANALYZE_PROMPT.format(question=question, answer=answer, criteria=", ".join(criteria))
         data = json.loads(await self._chat(prompt))

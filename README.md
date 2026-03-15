@@ -158,3 +158,7 @@ npm run dev -- -p 3001
 ## Лицензия
 
 MIT — форкай, деплой, адаптируй под свои нужды.
+
+
+Resume this session with:
+claude --resume 03f5be9e-6615-4dbc-a789-62a9105fb22b

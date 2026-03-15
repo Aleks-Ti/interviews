@@ -12,6 +12,7 @@ from interviews.infrastructure.database.connection import get_async_session
 from interviews.infrastructure.repository.persistence.question import PostgresQuestionRepository
 from interviews.providers.base import AIProvider
 from interviews.providers.factory import get_ai_provider
+from interviews.providers.whisper import LocalWhisper, get_local_whisper
 from interviews.routers.dependencies import get_current_user
 
 ai_router = APIRouter(
@@ -77,23 +78,21 @@ class TranscribeResponse(PreBasePydanticModel):
 @ai_router.post("/transcribe", response_model=TranscribeResponse)
 async def transcribe_audio(
     file: Annotated[UploadFile, File(...)],
-    ai: Annotated[AIProvider, Depends(get_ai_provider_dep)],
     current_user: Annotated[User, Depends(get_current_user)],
+    whisper: Annotated[LocalWhisper, Depends(get_local_whisper)],
 ) -> TranscribeResponse:
     """
     Транскрибировать аудиофайл без сохранения в БД.
 
     Используется для предварительной транскрипции перед сохранением ответа.
-    Поддерживает только провайдер OpenAI (Whisper).
+    Транскрибация выполняется локально через openai-whisper (ключ API не требуется).
     """
     try:
         audio = await file.read()
-        transcript = await ai.transcribe(audio, file.filename or "audio.webm")
+        transcript = await whisper.transcribe(audio, file.filename or "audio.webm")
         return TranscribeResponse(transcript=transcript)
     except AUTH_EXEPTIONS:
         raise
-    except NotImplementedError:
-        raise HTTPException(status_code=501, detail="Transcription is not supported by the current AI provider. Use AI_PROVIDER=openai.")
     except Exception as err:
         logging.exception(f"Transcription failed: {err}")
         raise HTTPException(status_code=502, detail="Transcription failed")

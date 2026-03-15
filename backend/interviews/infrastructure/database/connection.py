@@ -1,4 +1,4 @@
-import subprocess
+import asyncio
 from collections.abc import AsyncGenerator, Callable
 
 from sqlalchemy.engine.url import URL
@@ -24,4 +24,11 @@ async def get_async_session() -> AsyncGenerator:
 
 
 async def migrate():
-    subprocess.run("alembic upgrade head", shell=True, check=True)
+    from alembic import command
+    from alembic.config import Config
+
+    def _run():
+        cfg = Config("alembic.ini")
+        command.upgrade(cfg, "head")
+
+    await asyncio.to_thread(_run)

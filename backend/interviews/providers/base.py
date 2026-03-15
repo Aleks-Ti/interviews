@@ -29,11 +29,6 @@ class AIProvider(ABC):
     """Abstract AI provider. Implement this to plug in any AI backend."""
 
     @abstractmethod
-    async def transcribe(self, audio: bytes, filename: str = "audio.webm") -> str:
-        """Convert audio recording to text."""
-        ...
-
-    @abstractmethod
     async def analyze_answer(
         self,
         question: str,

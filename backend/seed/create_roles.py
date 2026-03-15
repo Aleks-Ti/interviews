@@ -27,15 +27,9 @@ async def role() -> None:
         for role_data in roles_data:
             query = text(
                 """
-                INSERT INTO public.roles (
-                    id,
-                    name
-                )
-                VALUES (
-                    :id,
-                    :name
-                )
-                RETURNING id
+                INSERT INTO public.roles (id, name)
+                VALUES (:id, :name)
+                ON CONFLICT (id) DO NOTHING
             """
             )
             values = {

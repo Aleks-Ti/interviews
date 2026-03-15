@@ -16,9 +16,24 @@ logger.setLevel(logging.INFO)
 logger.addHandler(ch)
 
 
+async def _run_seeds():
+    from seed.create_roles import role
+    from seed.create_admin import user
+    from seed.create_plans import plans
+    from seed.create_interviews import interviews
+    await role()
+    await user()
+    await plans()
+    await interviews()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await migrate()
+    try:
+        await _run_seeds()
+    except Exception:
+        logger.exception("Seed failed (non-fatal)")
     yield
 
 
